@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Songbook</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a; --text:#e8eaf0; --muted:#8b93a5;
+    --accent:#7c9cff; --accent2:#4ade80; --danger:#f87171; --radius:10px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f5f6f8; --panel:#fff; --panel2:#f0f2f6; --line:#dde1e9; --text:#171a21; --muted:#6a7285; --accent:#3b5bdb; --accent2:#16a34a; --danger:#dc2626; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  button,input,select,textarea{font:inherit;color:inherit}
+  input,select,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  textarea{resize:vertical;min-height:90px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.danger{color:var(--danger)}
+  button.ghost{background:none;border-color:transparent;color:var(--muted)}
+  button:disabled{opacity:.5;cursor:default}
+  .hidden{display:none!important}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center}
+  .grow{flex:1}
+
+  /* auth + setup */
+  .center{min-height:100vh;display:grid;place-items:center;padding:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:100%;max-width:400px}
+  .card h1{margin:0 0 4px;font-size:22px}
+  .err{color:var(--danger);font-size:13px;margin-top:10px;min-height:1em}
+
+  /* layout */
+  #app{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+  aside{background:var(--panel);border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh;overflow:auto}
+  aside h2{font-size:18px;margin:0}
+  .proj{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;border:1px solid transparent;background:none}
+  .proj:hover{background:var(--panel2)}
+  .proj.active{background:var(--panel2);border-color:var(--accent)}
+  .proj small{display:block;color:var(--muted)}
+  main{padding:24px;max-width:900px;width:100%}
+  .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .song{display:grid;grid-template-columns:34px 1fr 150px auto;gap:12px;align-items:center;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;cursor:pointer}
+  .song:hover{border-color:var(--accent)}
+  .num{color:var(--muted);text-align:center}
+  .bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--accent2);transition:width .2s}
+  .empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;justify-content:center;align-items:flex-start;padding:24px 12px;overflow:auto;z-index:10}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);width:100%;max-width:720px;padding:20px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0}
+  .tab{border:none;border-radius:8px 8px 0 0;background:none;color:var(--muted)}
+  .tab.active{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+  .step{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;margin:0;color:var(--text);font-size:14px}
+  .step input{width:auto}
+  .step.done{border-color:var(--accent2)}
+  .file{padding:10px;background:var(--panel2);border-radius:8px;margin-bottom:8px}
+  .file audio{width:100%;margin-top:6px}
+  .note{padding:10px;background:var(--panel2);border-radius:8px;margin-bottom:8px;white-space:pre-wrap}
+  .note small{display:block;color:var(--muted);margin-bottom:4px}
+  .song[draggable=true]{cursor:grab}
+  .song.dragging{opacity:.4}
+  .song.drop-before{box-shadow:0 -3px 0 var(--accent)}
+  .song.drop-after{box-shadow:0 3px 0 var(--accent)}
+  .task{display:flex;gap:8px;align-items:center;padding:6px 0;margin:0;color:var(--text);font-size:14px}
+  .task input[type=checkbox]{width:auto}
+  .task.done span{text-decoration:line-through;color:var(--muted)}
+  .task button{margin-left:auto}
+  #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;z-index:20;font-size:13px}
+
+  @media (max-width:760px){
+    #app{grid-template-columns:1fr}
+    aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .song{grid-template-columns:28px 1fr auto}
+    .song .bar{grid-column:2/4}
+    .grid2{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- Setup: shown only if keys are not configured below -->
+<div id="setup" class="center hidden">
+  <form class="card" id="setupForm">
+    <h1>Connect Supabase</h1>
+    <p class="muted">Project Settings → API. The anon key is safe to expose; your data is protected by login + row-level security. To skip this screen, hardcode both values in the script.</p>
+    <label>Project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co" required>
+    <label>Anon / publishable key</label><input id="sbKey" required>
+    <button class="primary" style="margin-top:14px;width:100%">Save</button>
+  </form>
+</div>
+
+<!-- Auth -->
+<div id="auth" class="center hidden">
+  <form class="card" id="authForm">
+    <h1>🎵 Songbook</h1>
+    <p class="muted">Sign in to your library.</p>
+    <label>Email</label><input id="email" type="email" required autocomplete="email">
+    <label>Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password">
+    <div class="row" style="margin-top:14px">
+      <button class="primary grow" id="btnSignIn" type="submit">Sign in</button>
+      <button class="grow" id="btnSignUp" type="button">Sign up</button>
+    </div>
+    <div class="err" id="authErr"></div>
+  </form>
+</div>
+
+<!-- App -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="row"><h2 class="grow">🎵 Songbook</h2><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
+    <button class="primary" data-act="new-project">+ New project</button>
+    <input id="search" placeholder="Search songs &amp; lyrics…">
+    <div id="projList"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast" class="hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+/* ---------- CONFIG ---------- */
+// Either paste your values here, or leave blank and the app will ask once (stored in this browser).
+const SUPABASE_URL = "https://hsdwhxklsjanzulyzufj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_BHEI6t16hd7ff3Xl8Q5yQA_weW8_EWI";
+const BUCKET = "song-audio";
+
+const STEPS = [
+  ["idea","Idea"],["lyrics","Lyrics written"],["demo","Demo recorded"],["recording","Recording"],
+  ["mixing","Mixing"],["mastering","Mastering"],["released","Released"]
+];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtSize = b => b > 1e6 ? (b/1e6).toFixed(1)+" MB" : Math.round((b||0)/1e3)+" KB";
+const fmtDate = d => new Date(d).toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.remove("hidden"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"),2500); }
+function progress(song){ const s=song.steps||{}; return Math.round(STEPS.filter(([k])=>s[k]).length/STEPS.length*100); }
+function lsGet(k){ try{return localStorage.getItem(k)}catch{return null} }
+function lsSet(k,v){ try{localStorage.setItem(k,v)}catch{} }
+
+/* ---------- state ---------- */
+let sb, user;
+let projects = [], songs = [];
+let currentProject = null;     // id
+let openSong = null;           // {id, tab}
+let songExtra = {files:[], notes:[], tasks:[]};
+let query = "";
+let chan = null, rtTimer;
+const MAX_BYTES = 3 * 1024 * 1024;   // uploads are compressed to fit under this
+
+/* ---------- boot ---------- */
+(async function boot(){
+  const url = SUPABASE_URL || lsGet("sb_url"), key = SUPABASE_ANON_KEY || lsGet("sb_key");
+  if(!url || !key){ $("#setup").classList.remove("hidden"); return; }
+  sb = supabase.createClient(url, key);
+  const { data:{ session } } = await sb.auth.getSession();
+  sb.auth.onAuthStateChange((_e, s) => { if(!!s !== !!user) route(s); });
+  route(session);
+})();
+
+$("#setupForm").addEventListener("submit", e => {
+  e.preventDefault();
+  lsSet("sb_url", $("#sbUrl").value.trim()); lsSet("sb_key", $("#sbKey").value.trim());
+  location.reload();
+});
+
+async function route(session){
+  user = session?.user || null;
+  $("#auth").classList.toggle("hidden", !!user);
+  $("#app").classList.toggle("hidden", !user);
+  if(user){
+    await sb.rpc("accept_my_invites");   // turns pending invites for this email into memberships
+    await loadAll();
+    subscribe();
+  }
+}
+
+/* ---------- auth ---------- */
+$("#authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const { error } = await sb.auth.signInWithPassword({ email:$("#email").value, password:$("#password").value });
+  $("#authErr").textContent = error ? error.message : "";
+});
+$("#btnSignUp").addEventListener("click", async () => {
+  const { data, error } = await sb.auth.signUp({ email:$("#email").value, password:$("#password").value });
+  $("#authErr").textContent = error ? error.message : (data.session ? "" : "Check your email to confirm, then sign in.");
+});
+
+/* ---------- data ---------- */
+async function loadAll(){
+  const [p, s] = await Promise.all([
+    sb.from("projects").select("*").order("created_at"),
+    sb.from("songs").select("*").order("track_number",{nullsFirst:false}).order("created_at"),
+  ]);
+  if(p.error || s.error){ toast((p.error||s.error).message); return; }
+  projects = p.data; songs = s.data;
+  if(!projects.find(x=>x.id===currentProject)) currentProject = projects[0]?.id || null;
+  render();
+}
+
+/* ---------- render ---------- */
+function render(){
+  const songMatch = s => !query || [s.title, s.lyrics, s.musical_key].some(v => (v||"").toLowerCase().includes(query));
+  const shownProjects = projects.filter(p => !query || p.title.toLowerCase().includes(query) || songs.some(s => s.project_id===p.id && songMatch(s)));
+  $("#projList").innerHTML = shownProjects.map(p => {
+    const n = songs.filter(s=>s.project_id===p.id).length;
+    return `<button class="proj ${p.id===currentProject?"active":""}" data-act="select-project" data-id="${p.id}">
+      ${esc(p.title)}<small>${p.type==="album"?"Album":"Single"} · ${n} song${n===1?"":"s"}${p.user_id!==user.id?" · shared":""}</small></button>`;
+  }).join("") || `<p class="muted">${query?"No matches.":"No projects yet."}</p>`;
+
+  const p = projects.find(x=>x.id===currentProject);
+  if(!p){ $("#main").innerHTML = `<div class="empty">Create your first project to get started.</div>`; return; }
+  const all = songs.filter(s=>s.project_id===p.id);
+  const list = all.filter(songMatch);
+  const avg = all.length ? Math.round(all.reduce((a,s)=>a+progress(s),0)/all.length) : 0;
+  $("#main").innerHTML = `
+    <div class="row" style="align-items:flex-start">
+      <div class="grow">
+        <h1 style="margin:0">${esc(p.title)} <span class="badge">${p.type}</span></h1>
+        <div class="muted">${esc(p.artist||"")}</div>
+        ${p.description?`<p>${esc(p.description)}</p>`:""}
+      </div>
+      <button data-act="show-members">👥 Members</button>
+      <button data-act="export-project">Export lyrics</button>
+      <button data-act="edit-project">Edit</button>
+    </div>
+    <div class="row" style="margin:14px 0"><div class="bar grow"><i style="width:${avg}%"></i></div><span class="muted">${avg}% overall</span></div>
+    <div class="row" style="margin-bottom:12px"><h3 class="grow" style="margin:0">Songs</h3><button class="primary" data-act="new-song">+ Add song</button></div>
+    ${list.map((s,i)=>`
+      <div class="song" data-act="open-song" data-id="${s.id}" ${query?"":`draggable="true" title="Drag to reorder"`}>
+        <div class="num">${s.track_number ?? i+1}</div>
+        <div><strong>${esc(s.title)}</strong><div class="muted" style="font-size:12px">${[s.bpm?s.bpm+" BPM":"", s.musical_key].filter(Boolean).join(" · ")}</div></div>
+        <div class="bar"><i style="width:${progress(s)}%"></i></div>
+        <div class="muted">${progress(s)}%</div>
+      </div>`).join("") || `<div class="empty">No songs in this project yet.</div>`}
+  `;
+}
+
+/* ---------- modals ---------- */
+function modal(html){ $("#modalRoot").innerHTML = `<div class="overlay" data-act="close-bg"><div class="modal">${html}</div></div>`; }
+function closeModal(){ $("#modalRoot").innerHTML=""; openSong=null; }
+
+function projectForm(p){
+  modal(`<h2 style="margin-top:0">${p?"Edit":"New"} project</h2>
+    <form id="projForm">
+      <label>Title</label><input name="title" required value="${esc(p?.title||"")}">
+      <label>Type</label>
+      <select name="type"><option value="single" ${p?.type==="single"?"selected":""}>Single</option><option value="album" ${p?.type==="album"?"selected":""}>Album</option></select>
+      <label>Artist</label><input name="artist" value="${esc(p?.artist||"")}">
+      <label>Description</label><textarea name="description">${esc(p?.description||"")}</textarea>
+      <div class="row" style="margin-top:16px">
+        ${p && p.user_id===user.id ? `<button type="button" class="danger" data-act="del-project">Delete</button>` : ""}
+        <span class="grow"></span>
+        <button type="button" data-act="close">Cancel</button><button class="primary">Save</button>
+      </div>
+    </form>`);
+  $("#projForm").onsubmit = async e => {
+    e.preventDefault();
+    const v = Object.fromEntries(new FormData(e.target));
+    const q = p ? sb.from("projects").update(v).eq("id",p.id).select().single() : sb.from("projects").insert(v).select().single();
+    const { data, error } = await q;
+    if(error) return toast(error.message);
+    currentProject = data.id; closeModal(); loadAll();
+  };
+}
+
+function songForm(){
+  modal(`<h2 style="margin-top:0">New song</h2>
+    <form id="songForm"><label>Title</label><input name="title" required autofocus>
+      <div class="row" style="margin-top:16px"><span class="grow"></span><button type="button" data-act="close">Cancel</button><button class="primary">Add</button></div>
+    </form>`);
+  $("#songForm").onsubmit = async e => {
+    e.preventDefault();
+    const n = songs.filter(s=>s.project_id===currentProject).length + 1;
+    const { data, error } = await sb.from("songs").insert({ title:new FormData(e.target).get("title"), project_id:currentProject, track_number:n }).select().single();
+    if(error) return toast(error.message);
+    await loadAll(); showSong(data.id);
+  };
+}
+
+async function showSong(id, tab="progress"){
+  openSong = { id, tab };
+  const [f, n, t] = await Promise.all([
+    sb.from("song_files").select("*").eq("song_id",id).order("created_at"),
+    sb.from("song_notes").select("*").eq("song_id",id).order("created_at",{ascending:false}),
+    sb.from("song_tasks").select("*").eq("song_id",id).order("created_at"),
+  ]);
+  songExtra = { files: f.data||[], notes: n.data||[], tasks: t.data||[] };
+  drawSong();
+}
+
+async function drawSong(){
+  const s = songs.find(x=>x.id===openSong.id); if(!s) return closeModal();
+  const tab = openSong.tab;
+  let body = "";
+  if(tab==="progress"){
+    body = `<div class="grid2">
+        <div><label>Track #</label><input type="number" data-meta="track_number" value="${s.track_number??""}"></div>
+        <div><label>BPM</label><input type="number" data-meta="bpm" value="${s.bpm??""}"></div>
+        <div><label>Key</label><input data-meta="musical_key" value="${esc(s.musical_key||"")}" placeholder="e.g. F#m"></div>
+      </div>
+      <label>Progress — ${progress(s)}%</label>
+      <div class="bar" style="margin-bottom:12px"><i style="width:${progress(s)}%"></i></div>
+      <div class="steps">${STEPS.map(([k,l])=>`<label class="step ${s.steps?.[k]?"done":""}"><input type="checkbox" data-step="${k}" ${s.steps?.[k]?"checked":""}>${l}</label>`).join("")}</div>
+      <label style="margin-top:18px">To-do (${songExtra.tasks.filter(t=>t.done).length}/${songExtra.tasks.length})</label>
+      ${songExtra.tasks.map(t=>`<label class="task ${t.done?"done":""}"><input type="checkbox" data-task="${t.id}" ${t.done?"checked":""}><span>${esc(t.body)}</span><button class="ghost danger" data-act="del-task" data-id="${t.id}">✕</button></label>`).join("")}
+      <input id="newTask" placeholder="Add a to-do and press Enter (e.g. re-record bridge vocals)" style="margin-top:6px">`;
+  } else if(tab==="lyrics"){
+    body = `<textarea id="lyrics" style="min-height:340px" placeholder="Write lyrics here…">${esc(s.lyrics)}</textarea>
+      <div class="row" style="margin-top:10px"><span class="grow muted" id="lyricsInfo"></span><button data-act="export-song">Export .txt</button><button class="primary" data-act="save-lyrics">Save lyrics</button></div>`;
+  } else if(tab==="audio"){
+    let urls = {};
+    if(songExtra.files.length){
+      const { data } = await sb.storage.from(BUCKET).createSignedUrls(songExtra.files.map(f=>f.path), 3600);
+      (data||[]).forEach(d => urls[d.path]=d.signedUrl);
+    }
+    body = `<input type="file" id="fileInput" accept="audio/*" multiple class="hidden">
+      <button class="primary" data-act="pick-file">Upload audio</button> <span class="muted" id="upInfo">Files over 3 MB are compressed to MP3 automatically.</span>
+      <div style="margin-top:14px">${songExtra.files.map(f=>`
+        <div class="file"><div class="row"><input class="grow" data-label="${f.id}" value="${esc(f.label||f.name)}" title="Rename (e.g. Demo v1, Mix 2)" style="font-weight:600;background:none;border-color:transparent"><span class="muted">${fmtSize(f.size)}</span>
+          <button class="ghost danger" data-act="del-file" data-id="${f.id}">Delete</button></div>
+          <audio controls preload="none" src="${esc(urls[f.path]||"")}"></audio></div>`).join("") || `<div class="empty">No audio yet.</div>`}</div>`;
+  } else {
+    body = `<textarea id="newNote" placeholder="Add a note…" style="min-height:70px"></textarea>
+      <div style="margin:8px 0 14px"><button class="primary" data-act="add-note">Add note</button></div>
+      ${songExtra.notes.map(n=>`<div class="note"><small>${esc(n.author||"")} · ${fmtDate(n.created_at)} · <a href="#" data-act="del-note" data-id="${n.id}" class="danger" style="color:var(--danger)">delete</a></small>${esc(n.body)}</div>`).join("") || `<div class="empty">No notes yet.</div>`}`;
+  }
+  modal(`<div class="row">
+      <input id="songTitle" value="${esc(s.title)}" style="font-size:20px;font-weight:600;background:none;border-color:transparent">
+      <button class="ghost" data-act="close">✕</button></div>
+    <div class="tabs">${["progress","lyrics","audio","notes"].map(t=>`<button class="tab ${t===tab?"active":""}" data-act="tab" data-tab="${t}">${t[0].toUpperCase()+t.slice(1)}${t==="audio"&&songExtra.files.length?` (${songExtra.files.length})`:""}${t==="notes"&&songExtra.notes.length?` (${songExtra.notes.length})`:""}</button>`).join("")}</div>
+    ${body}
+    <div style="margin-top:20px;text-align:right"><button class="ghost danger" data-act="del-song">Delete song</button></div>`);
+  $("#songTitle").onchange = async e => { await updateSong({title:e.target.value.trim()||s.title}); };
+  document.querySelectorAll("[data-meta]").forEach(i => i.onchange = () => {
+    const k=i.dataset.meta; updateSong({[k]: i.value===""?null : (i.type==="number"?Number(i.value):i.value)});
+  });
+  document.querySelectorAll("[data-step]").forEach(i => i.onchange = () => {
+    updateSong({ steps: { ...(s.steps||{}), [i.dataset.step]: i.checked } });
+  });
+  const fi = $("#fileInput"); if(fi) fi.onchange = () => uploadFiles(fi.files);
+  document.querySelectorAll("[data-label]").forEach(i => i.onchange = async () => {
+    const { error } = await sb.from("song_files").update({ label: i.value.trim() || null }).eq("id", i.dataset.label);
+    if(error) toast(error.message); else { songExtra.files.find(f=>f.id===i.dataset.label).label = i.value.trim() || null; }
+  });
+  document.querySelectorAll("[data-task]").forEach(i => i.onchange = async () => {
+    i.parentElement.classList.toggle("done", i.checked);
+    const { error } = await sb.from("song_tasks").update({ done: i.checked }).eq("id", i.dataset.task);
+    if(error) toast(error.message); else songExtra.tasks.find(t=>t.id===i.dataset.task).done = i.checked;
+  });
+  const nt = $("#newTask");
+  if(nt) nt.onkeydown = async e => {
+    if(e.key!=="Enter" || !nt.value.trim()) return;
+    const { error } = await sb.from("song_tasks").insert({ song_id: openSong.id, body: nt.value.trim() });
+    if(error) return toast(error.message);
+    showSong(openSong.id, "progress");
+  };
+  const ly = $("#lyrics");
+  if(ly){ const info = () => { const w = ly.value.trim().split(/\s+/).filter(Boolean).length; $("#lyricsInfo").textContent = `${w} words · ${ly.value ? ly.value.split("\n").length : 0} lines`; }; ly.oninput = info; info(); }
+}
+
+async function updateSong(patch){
+  const id = openSong.id;
+  const { data, error } = await sb.from("songs").update(patch).eq("id",id).select().single();
+  if(error) return toast(error.message);
+  songs = songs.map(s => s.id===id ? data : s);
+  sortSongs();
+  render(); if(openSong?.id===id) drawSong();
+}
+
+/* Compress any audio file to an MP3 under MAX_BYTES (in the browser, before upload).
+   Picks the highest bitrate that fits the song's length; very long tracks drop to mono / lower sample rate. */
+async function compressAudio(file, onStatus){
+  if(file.size <= MAX_BYTES) return { blob: file, name: file.name, note: "" };
+  onStatus(`Decoding ${file.name}…`);
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  let buf;
+  try { buf = await ctx.decodeAudioData(await file.arrayBuffer()); }
+  catch { throw new Error(`Couldn't read ${file.name} as audio`); }
+  finally { ctx.close && ctx.close(); }
+
+  const budget = MAX_BYTES * 0.94 * 8 / 1000 / buf.duration;           // max kbps that fits
+  const hi = [128,112,96,80,64].find(r => r <= budget);
+  const sr = hi ? 44100 : 22050;
+  const kbps = hi || [48,40,32,24,16].find(r => r <= budget) || 16;
+  const ch = kbps >= 112 ? 2 : 1;
+
+  onStatus(`Resampling (${kbps} kbps, ${ch===2?"stereo":"mono"})…`);
+  const off = new OfflineAudioContext(ch, Math.ceil(buf.duration * sr), sr);
+  const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
+  const r = await off.startRendering();
+
+  const i16 = f => { const o = new Int16Array(f.length); for(let i=0;i<f.length;i++){ const s = Math.max(-1, Math.min(1, f[i])); o[i] = s<0 ? s*32768 : s*32767; } return o; };
+  const L = i16(r.getChannelData(0)), R = ch===2 ? i16(r.getChannelData(1)) : null;
+  const enc = new lamejs.Mp3Encoder(ch, sr, kbps);
+  const parts = [], BS = 1152 * 10;
+  for(let i=0, n=0; i<L.length; i+=BS, n++){
+    const out = ch===2 ? enc.encodeBuffer(L.subarray(i,i+BS), R.subarray(i,i+BS)) : enc.encodeBuffer(L.subarray(i,i+BS));
+    if(out.length) parts.push(out);
+    if(n % 30 === 0){ onStatus(`Compressing ${file.name}… ${Math.round(i/L.length*100)}%`); await new Promise(res => setTimeout(res)); }
+  }
+  const tail = enc.flush(); if(tail.length) parts.push(tail);
+  const blob = new Blob(parts, { type: "audio/mpeg" });
+  if(blob.size > MAX_BYTES) throw new Error(`${file.name} is too long to fit under 3 MB`);
+  return { blob, name: file.name.replace(/\.[^.]+$/, "") + ".mp3", note: `${fmtSize(file.size)} → ${fmtSize(blob.size)} (${kbps} kbps)` };
+}
+
+async function uploadFiles(files){
+  const id = openSong.id; const info = $("#upInfo");
+  const projectId = songs.find(s => s.id===id).project_id;
+  for(const f of files){
+    let c;
+    try { c = await compressAudio(f, m => info.textContent = m); }
+    catch(err){ toast(err.message); continue; }
+    info.textContent = `Uploading ${c.name}…`;
+    const safe = c.name.replace(/[^\w.\-]+/g,"_");
+    const path = `${projectId}/${id}/${Date.now()}-${safe}`;
+    const up = await sb.storage.from(BUCKET).upload(path, c.blob, { contentType: c.blob.type || "audio/mpeg" });
+    if(up.error){ toast(up.error.message); continue; }
+    const { error } = await sb.from("song_files").insert({ song_id:id, path, name:c.name, size:c.blob.size });
+    if(error){ await sb.storage.from(BUCKET).remove([path]); toast(error.message); }
+    else if(c.note) toast("Compressed: " + c.note);
+  }
+  showSong(id,"audio");
+}
+
+/* ---------- realtime (bandmates' changes show up live) ---------- */
+function subscribe(){
+  if(chan) return;
+  chan = sb.channel("db-changes").on("postgres_changes", { event:"*", schema:"public" }, () => {
+    clearTimeout(rtTimer); rtTimer = setTimeout(refresh, 500);
+  }).subscribe();
+}
+async function refresh(){
+  await loadAll();
+  if(!openSong || openSong.tab==="lyrics") return;                       // never clobber lyrics being typed
+  const typing = document.activeElement && document.activeElement.closest(".modal") && /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+  const playing = [...document.querySelectorAll("audio")].some(a => !a.paused);
+  if(!typing && !playing) showSong(openSong.id, openSong.tab);
+}
+
+/* ---------- search ---------- */
+$("#search").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); render(); });
+
+/* ---------- drag to reorder ---------- */
+function sortSongs(){
+  songs.sort((a,b) => (a.track_number ?? 1e9) - (b.track_number ?? 1e9) || a.created_at.localeCompare(b.created_at));
+}
+async function saveOrder(ids){
+  const changes = [];
+  ids.forEach((id,i) => { const s = songs.find(x=>x.id===id); if(s.track_number !== i+1){ s.track_number = i+1; changes.push([id,i+1]); } });
+  sortSongs(); render();
+  const res = await Promise.all(changes.map(([id,n]) => sb.from("songs").update({ track_number:n }).eq("id",id)));
+  const bad = res.find(r => r.error);
+  if(bad){ toast(bad.error.message); loadAll(); }
+}
+let dragId = null;
+const clearMarks = () => document.querySelectorAll(".drop-before,.drop-after,.dragging").forEach(el => el.classList.remove("drop-before","drop-after","dragging"));
+$("#main").addEventListener("dragstart", e => {
+  const r = e.target.closest(".song[draggable=true]"); if(!r) return;
+  dragId = r.dataset.id; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId);
+  setTimeout(() => r.classList.add("dragging"));
+});
+$("#main").addEventListener("dragover", e => {
+  if(!dragId) return;
+  const r = e.target.closest(".song"); if(!r || r.dataset.id===dragId) return;
+  e.preventDefault();
+  document.querySelectorAll(".drop-before,.drop-after").forEach(el => el.classList.remove("drop-before","drop-after"));
+  const b = r.getBoundingClientRect();
+  r.classList.add(e.clientY < b.top + b.height/2 ? "drop-before" : "drop-after");
+});
+$("#main").addEventListener("drop", e => {
+  const r = e.target.closest(".song"); if(!r || !dragId) return;
+  e.preventDefault();
+  const before = r.classList.contains("drop-before");
+  const ids = songs.filter(s => s.project_id===currentProject).map(s => s.id).filter(i => i!==dragId);
+  let idx = ids.indexOf(r.dataset.id); if(!before) idx++;
+  ids.splice(idx, 0, dragId);
+  dragId = null; clearMarks();
+  saveOrder(ids);
+});
+$("#main").addEventListener("dragend", () => { dragId = null; clearMarks(); });
+
+/* ---------- export ---------- */
+function download(name, text){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type:"text/plain" }));
+  a.download = name.replace(/[^\w\- ]+/g,"_") + ".txt"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- members & invites ---------- */
+async function showMembers(){
+  const pid = currentProject, proj = projects.find(p=>p.id===pid);
+  const [m, i] = await Promise.all([
+    sb.from("project_members").select("*").eq("project_id",pid).order("created_at"),
+    sb.from("project_invites").select("*").eq("project_id",pid).order("created_at"),
+  ]);
+  const members = m.data||[], invites = i.data||[];
+  const owner = members.find(x=>x.user_id===user.id)?.role === "owner";
+  modal(`<div class="row"><h2 class="grow" style="margin:0">Members · ${esc(proj.title)}</h2><button class="ghost" data-act="close">✕</button></div>
+    <p class="muted">Everyone listed can edit every song, lyric, note, to-do and audio file in this project. Each person uses their own login.</p>
+    ${members.map(x=>`<div class="file row"><span class="grow">${esc(x.email||x.user_id)} <span class="badge">${x.role}</span></span>
+      ${owner && x.user_id!==user.id ? `<button class="danger" data-act="remove-member" data-id="${x.user_id}">Remove</button>` : ""}
+      ${x.user_id===user.id && x.role!=="owner" ? `<button class="danger" data-act="remove-member" data-id="${x.user_id}">Leave</button>` : ""}</div>`).join("")}
+    ${invites.length ? `<label>Pending invites</label>` : ""}
+    ${invites.map(x=>`<div class="file row"><span class="grow">${esc(x.email)}</span><button class="ghost danger" data-act="revoke-invite" data-id="${x.id}">Revoke</button></div>`).join("")}
+    <label>Invite a bandmate by email</label>
+    <form id="inviteForm" class="row"><input type="email" name="email" placeholder="bandmate@example.com" required class="grow"><button class="primary">Invite</button></form>
+    <p class="muted" style="font-size:13px">No email is sent. Send them this site's link; they sign up with <em>that exact email</em>, confirm it, and the project appears for them.</p>`);
+  $("#inviteForm").onsubmit = async e => {
+    e.preventDefault();
+    const email = new FormData(e.target).get("email").trim().toLowerCase();
+    if(members.some(x => (x.email||"").toLowerCase()===email)) return toast("Already a member");
+    const { error } = await sb.from("project_invites").insert({ project_id: pid, email });
+    if(error) return toast(error.code==="23505" ? "Already invited" : error.message);
+    showMembers();
+  };
+}
+
+/* ---------- click delegation ---------- */
+
+async function removeSongFiles(songIds){
+  if(!songIds.length) return;
+  const { data } = await sb.from("song_files").select("path").in("song_id", songIds);
+  if(data?.length) await sb.storage.from(BUCKET).remove(data.map(d=>d.path));
+}
+
+/* ---------- click delegation ---------- */
+document.addEventListener("click", async e => {
+  const el = e.target.closest("[data-act]"); if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if(act==="close-bg"){ if(e.target===el) closeModal(); return; }
+  if(act==="del-note") e.preventDefault();
+  switch(act){
+    case "signout": await sb.auth.signOut(); break;
+    case "select-project": currentProject=id; render(); break;
+    case "new-project": projectForm(null); break;
+    case "edit-project": projectForm(projects.find(p=>p.id===currentProject)); break;
+    case "del-project": {
+      if(!confirm("Delete this project, all its songs, lyrics, notes and audio?")) return;
+      await removeSongFiles(songs.filter(s=>s.project_id===currentProject).map(s=>s.id));
+      const { error } = await sb.from("projects").delete().eq("id",currentProject);
+      if(error) return toast(error.message);
+      currentProject=null; closeModal(); loadAll(); break; }
+    case "show-members": showMembers(); break;
+    case "remove-member": {
+      const self = id === user.id;
+      if(!confirm(self ? "Leave this project?" : "Remove this person from the project?")) return;
+      const { error } = await sb.from("project_members").delete().eq("project_id",currentProject).eq("user_id",id);
+      if(error) return toast(error.message);
+      if(self){ closeModal(); currentProject=null; loadAll(); } else showMembers();
+      break; }
+    case "revoke-invite":
+      await sb.from("project_invites").delete().eq("id",id); showMembers(); break;
+    case "export-project": {
+      const p = projects.find(x=>x.id===currentProject);
+      const text = songs.filter(s=>s.project_id===p.id).map(s=>`${s.title}\n${"-".repeat(s.title.length)}\n${s.lyrics||"(no lyrics yet)"}`).join("\n\n\n");
+      download(p.title + " - lyrics", text); break; }
+    case "export-song": {
+      const s = songs.find(x=>x.id===openSong.id);
+      download(s.title, `${s.title}\n\n${$("#lyrics").value}`); break; }
+    case "del-task":
+      await sb.from("song_tasks").delete().eq("id",id); showSong(openSong.id,"progress"); break;
+    case "new-song": songForm(); break;
+    case "open-song": showSong(id); break;
+    case "close": closeModal(); break;
+    case "tab": openSong.tab = el.dataset.tab; drawSong(); break;
+    case "save-lyrics": await updateSong({ lyrics: $("#lyrics").value }); toast("Lyrics saved"); break;
+    case "pick-file": $("#fileInput").click(); break;
+    case "del-file": {
+      if(!confirm("Delete this audio file?")) return;
+      const f = songExtra.files.find(x=>x.id===id);
+      await sb.storage.from(BUCKET).remove([f.path]);
+      await sb.from("song_files").delete().eq("id",id);
+      showSong(openSong.id,"audio"); break; }
+    case "add-note": {
+      const body = $("#newNote").value.trim(); if(!body) return;
+      const { error } = await sb.from("song_notes").insert({ song_id:openSong.id, body });
+      if(error) return toast(error.message);
+      showSong(openSong.id,"notes"); break; }
+    case "del-note":
+      await sb.from("song_notes").delete().eq("id",id); showSong(openSong.id,"notes"); break;
+    case "del-song": {
+      if(!confirm("Delete this song and everything attached to it?")) return;
+      await removeSongFiles([openSong.id]);
+      const { error } = await sb.from("songs").delete().eq("id",openSong.id);
+      if(error) return toast(error.message);
+      closeModal(); loadAll(); break; }
+  }
+});
+document.addEventListener("keydown", e => { if(e.key==="Escape" && openSong) closeModal(); });
+</script>
+</body>
+</html>
