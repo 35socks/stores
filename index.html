@@ -4,121 +4,208 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Songbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
 <style>
+  @font-face{
+    font-family:"Ndot 55";
+    src:url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.woff2") format("woff2"),
+        url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.woff") format("woff"),
+        url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.ttf") format("truetype");
+    font-display:swap;
+  }
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a; --text:#e8eaf0; --muted:#8b93a5;
-    --accent:#7c9cff; --accent2:#4ade80; --danger:#f87171; --radius:10px;
+    --void:#000; --paper:#fff; --dim:#6a6a6a; --dim-2:#333; --dim-3:#9a9a9a;
+    --panel:#0a0a0a; --panel2:#0e0e0e; --panel3:#141414; --line:#262626; --line2:#3a3a3a;
+    --ok:#9ae6b4; --warn:#f6d57a; --bad:#ff8a8a;
+    --ease:cubic-bezier(.16,.84,.44,1);
+    --mono:'Space Mono',ui-monospace,Menlo,monospace;
+    --pix:'Ndot 55','Open Sans',monospace;
+    /* aliases used by the app */
+    --bg:var(--void); --text:var(--paper); --muted:var(--dim); --accent:var(--paper); --accent2:var(--ok); --danger:var(--bad);
+    color-scheme:dark;
   }
-  @media (prefers-color-scheme: light){
-    :root{ --bg:#f5f6f8; --panel:#fff; --panel2:#f0f2f6; --line:#dde1e9; --text:#171a21; --muted:#6a7285; --accent:#3b5bdb; --accent2:#16a34a; --danger:#dc2626; }
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  button,input,select,textarea{font:inherit;color:inherit}
-  input,select,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
-  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
-  textarea{resize:vertical;min-height:90px}
-  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
-  button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
-  button:hover{border-color:var(--accent)}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  button.danger{color:var(--danger)}
-  button.ghost{background:none;border-color:transparent;color:var(--muted)}
-  button:disabled{opacity:.5;cursor:default}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--void);color:var(--paper);font-family:'Open Sans',system-ui,sans-serif;min-height:100%}
+  body{font-size:13px;line-height:1.5}
+  ::selection{background:var(--paper);color:var(--void)}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:var(--line)}
+  ::-webkit-scrollbar-track{background:transparent}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  a{color:inherit;text-decoration:none}
+
+  /* ambient layers */
+  #dotfield{position:fixed;inset:0;z-index:0;display:block}
+  .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .scanline-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:repeating-linear-gradient(to bottom,rgba(255,255,255,.018) 0,rgba(255,255,255,.018) 1px,transparent 1px,transparent 3px)}
+
+  /* form primitives */
+  input,select,textarea{width:100%;background:transparent;border:1px solid var(--line);color:var(--paper);padding:10px 11px;outline:none;letter-spacing:.03em;border-radius:0;transition:border-color .25s var(--ease)}
+  input:focus,select:focus,textarea:focus{border-color:var(--paper)}
+  input::placeholder,textarea::placeholder{color:var(--dim-2)}
+  select option{background:#0a0a0a}
+  textarea{resize:vertical;min-height:90px;line-height:1.6}
+  input[type=checkbox]{accent-color:var(--paper);width:13px;height:13px}
+  label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:12px 0 7px}
+  button{background:transparent;border:1px solid var(--line2);color:var(--paper);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;padding:9px 14px;cursor:pointer;border-radius:0;transition:all .25s var(--ease)}
+  button:hover{border-color:var(--paper)}
+  button.primary{background:var(--paper);color:var(--void);border-color:var(--paper);font-weight:600}
+  button.primary:hover{background:transparent;color:var(--paper)}
+  button.danger{color:var(--bad)}
+  button.danger:hover{border-color:var(--bad)}
+  button.ghost{background:none;border-color:transparent;color:var(--dim)}
+  button.ghost:hover{color:var(--paper)}
+  button.ghost.danger:hover{color:var(--bad)}
+  button:disabled{opacity:.4;cursor:not-allowed}
   .hidden{display:none!important}
-  .muted{color:var(--muted)}
+  .muted{color:var(--dim)}
   .row{display:flex;gap:10px;align-items:center}
   .grow{flex:1}
+  kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);padding:1px 5px;color:var(--dim-3)}
 
-  /* auth + setup */
-  .center{min-height:100vh;display:grid;place-items:center;padding:16px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:100%;max-width:400px}
-  .card h1{margin:0 0 4px;font-size:22px}
-  .err{color:var(--danger);font-size:13px;margin-top:10px;min-height:1em}
+  /* pixel headings */
+  .wordmark,.vmark,main h1,.modal h2,.vcard h2{font-family:var(--pix);font-weight:400}
+  .wordmark{font-size:18px;letter-spacing:.1em;margin:0}
+  .wordmark span,.vmark span{opacity:.45}
 
-  /* layout */
-  #app{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
-  aside{background:var(--panel);border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh;overflow:auto}
-  aside h2{font-size:18px;margin:0}
-  .proj{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;border:1px solid transparent;background:none}
+  /* ---------- VOIDAUTH: login + setup ---------- */
+  .void{position:fixed;inset:0;display:grid;place-items:center;padding:20px;overflow:auto;z-index:30;background:transparent}
+  .vcard{position:relative;z-index:1;width:100%;max-width:400px;padding:30px 28px 22px;background:var(--panel);border:1px solid var(--line)}
+  .vcard::before,.vcard::after,.modal::before,.modal::after{content:'';position:absolute;width:14px;height:14px;border:2px solid var(--paper);opacity:.8;pointer-events:none}
+  .vcard::before,.modal::before{top:-7px;left:-7px;border-width:2px 0 0 2px}
+  .vcard::after,.modal::after{bottom:-7px;right:-7px;border-width:0 2px 2px 0}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:11px;letter-spacing:.32em;color:var(--dim);text-transform:uppercase}
+  .dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--paper);animation:pulse 1.6s ease-in-out infinite;flex:none}
+  @keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+  @keyframes flicker-in{0%{opacity:0}50%{opacity:.5}100%{opacity:1}}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+  .vmark{font-size:38px;letter-spacing:.12em;line-height:1;margin:20px 0 10px}
+  .vsub{margin:0;color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .boot{margin-top:14px;font:11px/1.8 var(--mono);letter-spacing:.06em;color:var(--dim)}
+  .boot div{opacity:0;animation:flicker-in .25s steps(2) forwards}
+  .boot div:nth-child(1){animation-delay:.15s}.boot div:nth-child(2){animation-delay:.6s}.boot div:nth-child(3){animation-delay:1.05s}
+  .cursor{display:inline-block;width:7px;height:12px;background:var(--paper);margin-left:4px;vertical-align:middle;animation:blink 1s steps(1) infinite}
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:22px 0 4px}
+  .seg button{border:0;border-bottom:2px solid transparent;color:var(--dim);padding:11px 6px;font-size:10.5px}
+  .seg button.on{color:var(--paper);border-bottom-color:var(--paper);background:var(--panel3)}
+  .vcard label{margin:16px 0 7px}
+  .vcard input{padding:11px 12px}
+  .pw{position:relative}
+  .pw input{padding-right:64px}
+  .pw button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;color:var(--dim);font-size:9.5px;padding:6px 8px}
+  .pw button:hover{color:var(--paper)}
+  .vbtn{width:100%;margin-top:22px;padding:13px;font-size:11px}
+  .status{display:flex;gap:8px;align-items:center;margin-top:16px;min-height:1.5em;font:11px/1.4 var(--mono);letter-spacing:.05em;color:var(--dim)}
+  .sdot{width:6px;height:6px;background:var(--dim);flex:none}
+  .status.busy{color:var(--paper)} .status.busy .sdot{background:var(--paper);animation:pulse 1s infinite}
+  .status.err{color:var(--bad)} .status.err .sdot{background:var(--bad)}
+  .status.ok{color:var(--ok)} .status.ok .sdot{background:var(--ok)}
+  .vfoot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim-2);text-align:center}
+  .vcard h2{margin:16px 0 8px;font-size:20px;letter-spacing:.08em}
+
+  /* ---------- app layout ---------- */
+  #app{position:relative;z-index:5;display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+  aside{background:rgba(0,0,0,.72);backdrop-filter:blur(6px);border-right:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;height:100vh;overflow:auto}
+  .proj{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-left:2px solid transparent;background:none;text-transform:none;letter-spacing:.03em;font-size:13px}
   .proj:hover{background:var(--panel2)}
-  .proj.active{background:var(--panel2);border-color:var(--accent)}
-  .proj small{display:block;color:var(--muted)}
-  main{padding:24px;max-width:900px;width:100%}
-  .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .song{display:grid;grid-template-columns:34px 1fr 150px auto;gap:12px;align-items:center;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;cursor:pointer}
-  .song:hover{border-color:var(--accent)}
-  .num{color:var(--muted);text-align:center}
-  .bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}
-  .bar>i{display:block;height:100%;background:var(--accent2);transition:width .2s}
-  .empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+  .proj.active{background:var(--panel3);border-left-color:var(--paper)}
+  .proj small{display:block;color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+  main{padding:4vh 4vw;max-width:980px;width:100%}
+  main h1{font-size:clamp(24px,4vw,34px);letter-spacing:.06em}
+  main h3{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  .badge{font-size:9px;letter-spacing:.16em;padding:3px 7px;border:1px solid var(--line);color:var(--dim-3);text-transform:uppercase;font-family:var(--mono);vertical-align:middle}
+  .song{display:grid;grid-template-columns:34px 1fr 150px auto;gap:14px;align-items:center;padding:14px;background:var(--panel);border:1px solid var(--line);margin-bottom:-1px;cursor:pointer;transition:background .25s var(--ease)}
+  .song:hover{background:var(--panel2);border-color:var(--line2);position:relative}
+  .num{color:var(--dim);text-align:center;font-family:var(--mono)}
+  .bar{height:6px;background:var(--line)}
+  .bar>i{display:block;height:100%;background:var(--paper);transition:width .25s var(--ease)}
+  .empty{padding:34px 16px;text-align:center;color:var(--dim);font-size:11px;letter-spacing:.16em;text-transform:uppercase;border:1px dashed var(--line2)}
+  .song[draggable=true]{cursor:grab}
+  .song.dragging{opacity:.35}
+  .song.drop-before{box-shadow:0 -2px 0 var(--paper)}
+  .song.drop-after{box-shadow:0 2px 0 var(--paper)}
 
   /* modal */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;justify-content:center;align-items:flex-start;padding:24px 12px;overflow:auto;z-index:10}
-  .modal{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);width:100%;max-width:720px;padding:20px}
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0}
-  .tab{border:none;border-radius:8px 8px 0 0;background:none;color:var(--muted)}
-  .tab.active{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
-  .step{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;margin:0;color:var(--text);font-size:14px}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;justify-content:center;align-items:flex-start;padding:24px 14px;overflow:auto;z-index:40;animation:flicker-in .2s}
+  .modal{position:relative;background:var(--panel);border:1px solid var(--line2);width:100%;max-width:720px;padding:22px;margin:auto 0}
+  .modal h2{font-size:20px;letter-spacing:.08em}
+  .tabs{display:flex;border-bottom:1px solid var(--line);margin:16px 0 18px;flex-wrap:wrap}
+  .tab{border:0;border-bottom:2px solid transparent;background:none;color:var(--dim);padding:10px 16px}
+  .tab:hover{color:var(--paper)}
+  .tab.active{color:var(--paper);border-bottom-color:var(--paper)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .step{display:flex;gap:10px;align-items:center;padding:12px;background:var(--panel);cursor:pointer;margin:0;color:var(--dim-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
   .step input{width:auto}
-  .step.done{border-color:var(--accent2)}
-  .file{padding:10px;background:var(--panel2);border-radius:8px;margin-bottom:8px}
-  .file audio{width:100%;margin-top:6px}
-  .note{padding:10px;background:var(--panel2);border-radius:8px;margin-bottom:8px;white-space:pre-wrap}
-  .note small{display:block;color:var(--muted);margin-bottom:4px}
-  .song[draggable=true]{cursor:grab}
-  .song.dragging{opacity:.4}
-  .song.drop-before{box-shadow:0 -3px 0 var(--accent)}
-  .song.drop-after{box-shadow:0 3px 0 var(--accent)}
-  .task{display:flex;gap:8px;align-items:center;padding:6px 0;margin:0;color:var(--text);font-size:14px}
+  .step.done{color:var(--paper);background:var(--panel3)}
+  .file,.note{padding:12px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
+  .file audio{width:100%;margin-top:8px}
+  .note{white-space:pre-wrap}
+  .note small{display:block;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.06em;margin-bottom:6px}
+  .task{display:flex;gap:10px;align-items:center;padding:7px 0;margin:0;color:var(--paper);font-size:13px;letter-spacing:0;text-transform:none;border-bottom:1px solid var(--line)}
   .task input[type=checkbox]{width:auto}
-  .task.done span{text-decoration:line-through;color:var(--muted)}
+  .task.done span{text-decoration:line-through;color:var(--dim)}
   .task button{margin-left:auto}
-  #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;z-index:20;font-size:13px}
+  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--paper);color:var(--void);padding:10px 16px;z-index:70;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
 
   @media (max-width:760px){
     #app{grid-template-columns:1fr}
-    aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
     .song{grid-template-columns:28px 1fr auto}
     .song .bar{grid-column:2/4}
     .grid2{grid-template-columns:1fr 1fr}
   }
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001s!important}}
 </style>
 </head>
 <body>
+<canvas id="dotfield" aria-hidden="true"></canvas>
+<div class="noise"></div>
+<div class="scanline-overlay"></div>
 
 <!-- Setup: shown only if keys are not configured below -->
-<div id="setup" class="center hidden">
-  <form class="card" id="setupForm">
-    <h1>Connect Supabase</h1>
-    <p class="muted">Project Settings → API. The anon key is safe to expose; your data is protected by login + row-level security. To skip this screen, hardcode both values in the script.</p>
-    <label>Project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co" required>
-    <label>Anon / publishable key</label><input id="sbKey" required>
-    <button class="primary" style="margin-top:14px;width:100%">Save</button>
+<div id="setup" class="void hidden">
+  <form class="vcard" id="setupForm">
+    <div class="eyebrow"><span class="dot-pulse"></span>First-time setup</div>
+    <h2>Connect Supabase</h2>
+    <p class="vsub" style="text-transform:none;letter-spacing:.02em;line-height:1.6">Project Settings → API. The publishable key is safe to expose; data is protected by login + row-level security. Never paste a secret key here.</p>
+    <label for="sbUrl">Project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co" required>
+    <label for="sbKey">Publishable key</label><input id="sbKey" required>
+    <button class="primary vbtn">Save →</button>
   </form>
 </div>
 
-<!-- Auth -->
-<div id="auth" class="center hidden">
-  <form class="card" id="authForm">
-    <h1>🎵 Songbook</h1>
-    <p class="muted">Sign in to your library.</p>
-    <label>Email</label><input id="email" type="email" required autocomplete="email">
-    <label>Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password">
-    <div class="row" style="margin-top:14px">
-      <button class="primary grow" id="btnSignIn" type="submit">Sign in</button>
-      <button class="grow" id="btnSignUp" type="button">Sign up</button>
+<!-- Auth (VOIDAUTH) -->
+<div id="auth" class="void hidden">
+  <form class="vcard" id="authForm">
+    <div class="eyebrow"><span class="dot-pulse"></span>Secure access · Private workspace</div>
+    <div class="vmark"><span>AUTH</span></div>
+    <p class="vsub">Identity gateway for Songbook</p>
+    <div class="seg" role="tablist">
+      <button type="button" class="on" data-mode="signin" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" data-mode="signup" role="tab" aria-selected="false">Create account</button>
     </div>
-    <div class="err" id="authErr"></div>
+    <label for="email">Email</label>
+    <input id="email" type="email" required autocomplete="email" placeholder="you@domain.com">
+    <label for="password">Password</label>
+    <div class="pw">
+      <input id="password" type="password" required minlength="6" autocomplete="current-password" placeholder="••••••••">
+      <button type="button" id="pwToggle" tabindex="-1">Show</button>
+    </div>
+    <button class="primary vbtn" id="authSubmit" type="submit">Authenticate →</button>
+    <div class="status" id="authStatus" role="status" aria-live="polite"><span class="sdot"></span><span id="authMsg">Session: unauthenticated</span></div>
+    <div class="vfoot">TLS · Row-level security · Verified invites</div>
   </form>
 </div>
 
 <!-- App -->
 <div id="app" class="hidden">
   <aside>
-    <div class="row"><h2 class="grow">🎵 Songbook</h2><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
+    <div class="row"><h2 class="grow wordmark">SONG<span>BOOK</span></h2><button class="ghost" data-act="s3-settings" title="Storage (S3) keys">Storage</button><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
     <button class="primary" data-act="new-project">+ New project</button>
     <input id="search" placeholder="Search songs &amp; lyrics…">
     <div id="projList"></div>
@@ -131,6 +218,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script src="s3.js"></script>
 <script>
 /* ---------- CONFIG ---------- */
 // Either paste your values here, or leave blank and the app will ask once (stored in this browser).
@@ -142,6 +230,81 @@ const STEPS = [
   ["idea","Idea"],["lyrics","Lyrics written"],["demo","Demo recorded"],["recording","Recording"],
   ["mixing","Mixing"],["mastering","Mastering"],["released","Released"]
 ];
+
+/* ---------- S3 (AWS Signature V4 query presigning, via WebCrypto) ---------- */
+const S3 = (() => {
+  const enc = new TextEncoder();
+  const hex = b => [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+  const rfc = s => encodeURIComponent(s).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+  async function hmac(key, data){
+    const k = await crypto.subtle.importKey("raw", key, { name:"HMAC", hash:"SHA-256" }, false, ["sign"]);
+    return new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(data)));
+  }
+  async function sha256(s){ return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s)))); }
+
+  // Config = browser-saved values, overridden by any non-empty values in s3.js (if that file exists).
+  function saved(){ try { return JSON.parse(localStorage.getItem("s3_config") || "{}"); } catch { return {}; } }
+  function cfg(){
+    const out = { region:"eu-west-1", ...saved() }, file = window.S3_CONFIG || {};
+    for(const k in file) if(file[k]) out[k] = file[k];
+    return out;
+  }
+  const configured = () => { const C = cfg(); return !!(C.accessKeyId && C.secretAccessKey && C.region && C.bucket); };
+
+  async function presign(method, key, expires = 3600){
+    if(!configured()) throw new Error("S3 isn't configured: add keys in s3.js or use the Storage button");
+    const C = cfg();
+    let host, base = "";
+    if(C.endpoint){ const u = new URL(C.endpoint); host = u.host; base = u.pathname.replace(/\/$/, "") + "/" + C.bucket; }
+    else host = `${C.bucket}.s3.${C.region}.amazonaws.com`;
+    const path = base + "/" + key.split("/").map(rfc).join("/");
+    const amz = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+    const day = amz.slice(0, 8), scope = `${day}/${C.region}/s3/aws4_request`;
+    const params = {
+      "X-Amz-Algorithm":"AWS4-HMAC-SHA256", "X-Amz-Credential":`${C.accessKeyId}/${scope}`,
+      "X-Amz-Date":amz, "X-Amz-Expires":String(expires), "X-Amz-SignedHeaders":"host",
+    };
+    const query = Object.keys(params).sort().map(k => rfc(k) + "=" + rfc(params[k])).join("&");
+    const canonical = [method, path, query, "host:" + host + "\n", "host", "UNSIGNED-PAYLOAD"].join("\n");
+    const toSign = ["AWS4-HMAC-SHA256", amz, scope, await sha256(canonical)].join("\n");
+    let k = await hmac(enc.encode("AWS4" + C.secretAccessKey), day);
+    k = await hmac(k, C.region); k = await hmac(k, "s3"); k = await hmac(k, "aws4_request");
+    return `https://${host}${path}?${query}&X-Amz-Signature=${hex(await hmac(k, toSign))}`;
+  }
+  // No local keys? Ask the "s3-sign" Supabase Edge Function for links (it checks login + project membership).
+  async function viaFn(action, keys){
+    const { data, error } = await sb.functions.invoke("s3-sign", { body:{ action, keys } });
+    if(error){
+      let msg = error.message;
+      try { const j = await error.context.json(); if(j.error) msg = j.error; } catch {}
+      throw new Error("Signing service: " + msg);
+    }
+    return data.urls;
+  }
+  async function signed(method, key, expires){
+    if(configured()) return presign(method, key, expires);
+    return (await viaFn({ GET:"get", PUT:"put", DELETE:"delete" }[method], [key]))[0];
+  }
+  async function check(res, what){
+    if(res.ok) return;
+    let d = ""; try { d = (await res.text()).match(/<Message>(.*?)<\/Message>/)?.[1] || ""; } catch {}
+    throw new Error(`${what} failed (${res.status}${d ? ": " + d : ""})`);
+  }
+  return {
+    configured, cfg, saved,
+    save: o => localStorage.setItem("s3_config", JSON.stringify(o)),
+    clear: () => localStorage.removeItem("s3_config"),
+    url: (key, expires) => signed("GET", key, expires),
+    urls: (keys, expires) => configured() ? Promise.all(keys.map(k => presign("GET", k, expires))) : viaFn("get", keys),
+    async put(key, blob, type){
+      let res;
+      try { res = await fetch(await signed("PUT", key, 900), { method:"PUT", body:blob, headers:{ "Content-Type": type || "application/octet-stream" } }); }
+      catch(e){ if(/configured/.test(e.message)) throw e; throw new Error("S3 upload blocked: check the bucket's CORS settings (" + e.message + ")"); }
+      await check(res, "S3 upload");
+    },
+    async remove(key){ await check(await fetch(await signed("DELETE", key, 300), { method:"DELETE" }), "S3 delete"); },
+  };
+})();
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -192,14 +355,33 @@ async function route(session){
 }
 
 /* ---------- auth ---------- */
+let authMode = "signin", authBusy = false;
+function setAuthMsg(text, kind){ $("#authStatus").className = "status " + (kind||""); $("#authMsg").textContent = text; }
+function setAuthMode(m){
+  authMode = m;
+  document.querySelectorAll("[data-mode]").forEach(b => { const on = b.dataset.mode===m; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  $("#authSubmit").textContent = m==="signin" ? "Authenticate →" : "Create account →";
+  $("#password").setAttribute("autocomplete", m==="signin" ? "current-password" : "new-password");
+  setAuthMsg("Session: unauthenticated");
+}
+document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => setAuthMode(b.dataset.mode));
+$("#pwToggle").onclick = () => {
+  const p = $("#password"), show = p.type==="password";
+  p.type = show ? "text" : "password"; $("#pwToggle").textContent = show ? "Hide" : "Show";
+};
 $("#authForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const { error } = await sb.auth.signInWithPassword({ email:$("#email").value, password:$("#password").value });
-  $("#authErr").textContent = error ? error.message : "";
-});
-$("#btnSignUp").addEventListener("click", async () => {
-  const { data, error } = await sb.auth.signUp({ email:$("#email").value, password:$("#password").value });
-  $("#authErr").textContent = error ? error.message : (data.session ? "" : "Check your email to confirm, then sign in.");
+  e.preventDefault(); if(authBusy) return;
+  authBusy = true;
+  const btn = $("#authSubmit"), label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Authenticating…"; setAuthMsg("Verifying credentials…", "busy");
+  const creds = { email: $("#email").value.trim(), password: $("#password").value };
+  let data, error;
+  if(authMode==="signin") ({ error } = await sb.auth.signInWithPassword(creds));
+  else ({ data, error } = await sb.auth.signUp({ ...creds, options:{ emailRedirectTo: location.origin + location.pathname } }));
+  authBusy = false; btn.disabled = false; btn.textContent = label;
+  if(error) setAuthMsg(error.message, "err");
+  else if(authMode==="signup" && !data.session) setAuthMsg("Confirmation link sent. Check your inbox, then sign in.", "ok");
+  else setAuthMsg("Access granted", "ok");
 });
 
 /* ---------- data ---------- */
@@ -280,6 +462,30 @@ function projectForm(p){
   };
 }
 
+function s3Form(){
+  const c = S3.saved(), fromFile = !!(window.S3_CONFIG && window.S3_CONFIG.accessKeyId);
+  modal(`<h2 style="margin-top:0">Storage (S3)</h2>
+    <p class="muted" style="font-size:12px;line-height:1.6">Saved only in this browser, never in the repo. ${fromFile ? "Values in <b>s3.js</b> are in use and override these." : S3.configured() ? "Configured." : "Not configured yet."}</p>
+    <form id="s3Form" autocomplete="off">
+      <label>Access key ID</label><input name="accessKeyId" value="${esc(c.accessKeyId||"")}" spellcheck="false">
+      <label>Secret access key</label><input name="secretAccessKey" type="password" value="${esc(c.secretAccessKey||"")}">
+      <div class="grid2" style="grid-template-columns:1fr 2fr">
+        <div><label>Region</label><input name="region" value="${esc(c.region||"eu-west-1")}"></div>
+        <div><label>Bucket</label><input name="bucket" value="${esc(c.bucket||"")}"></div>
+      </div>
+      <label>Custom endpoint (optional, blank = AWS)</label><input name="endpoint" value="${esc(c.endpoint||"")}" placeholder="https://…">
+      <div class="row" style="margin-top:16px">
+        <button type="button" class="danger" data-act="s3-clear">Clear</button><span class="grow"></span>
+        <button type="button" data-act="close">Cancel</button><button class="primary">Save</button>
+      </div>
+    </form>`);
+  $("#s3Form").onsubmit = e => {
+    e.preventDefault();
+    const o = Object.fromEntries([...new FormData(e.target)].map(([k,v]) => [k, v.trim()]));
+    S3.save(o); toast("Storage saved"); closeModal();
+  };
+}
+
 function songForm(){
   modal(`<h2 style="margin-top:0">New song</h2>
     <form id="songForm"><label>Title</label><input name="title" required autofocus>
@@ -327,8 +533,8 @@ async function drawSong(){
   } else if(tab==="audio"){
     let urls = {};
     if(songExtra.files.length){
-      const { data } = await sb.storage.from(BUCKET).createSignedUrls(songExtra.files.map(f=>f.path), 3600);
-      (data||[]).forEach(d => urls[d.path]=d.signedUrl);
+      try { const u = await S3.urls(songExtra.files.map(f => f.path), 3600); songExtra.files.forEach((f,i) => urls[f.path] = u[i]); }
+      catch(err){ toast(err.message); }
     }
     body = `<input type="file" id="fileInput" accept="audio/*" multiple class="hidden">
       <button class="primary" data-act="pick-file">Upload audio</button> <span class="muted" id="upInfo">Files over 3 MB are compressed to MP3 automatically.</span>
@@ -425,20 +631,28 @@ async function compressAudio(file, onStatus){
 async function uploadFiles(files){
   const id = openSong.id; const info = $("#upInfo");
   const projectId = songs.find(s => s.id===id).project_id;
+  const errors = [];
+  const fail = (name, msg, err) => { console.error("Upload failed:", name, err || msg); errors.push(`${name}: ${msg}`); };
   for(const f of files){
     let c;
-    try { c = await compressAudio(f, m => info.textContent = m); }
-    catch(err){ toast(err.message); continue; }
+    try {
+      if(f.size > MAX_BYTES && typeof lamejs === "undefined") throw new Error("MP3 encoder failed to load (check your connection / ad-blocker)");
+      c = await compressAudio(f, m => info.textContent = m);
+    } catch(err){ fail(f.name, err.message, err); continue; }
     info.textContent = `Uploading ${c.name}…`;
     const safe = c.name.replace(/[^\w.\-]+/g,"_");
     const path = `${projectId}/${id}/${Date.now()}-${safe}`;
-    const up = await sb.storage.from(BUCKET).upload(path, c.blob, { contentType: c.blob.type || "audio/mpeg" });
-    if(up.error){ toast(up.error.message); continue; }
+    try { await S3.put(path, c.blob, c.blob.type || "audio/mpeg"); }
+    catch(err){ fail(c.name, err.message, err); continue; }
     const { error } = await sb.from("song_files").insert({ song_id:id, path, name:c.name, size:c.blob.size });
-    if(error){ await sb.storage.from(BUCKET).remove([path]); toast(error.message); }
+    if(error){ S3.remove(path).catch(()=>{}); fail(c.name, "database: " + error.message, error); }
     else if(c.note) toast("Compressed: " + c.note);
   }
-  showSong(id,"audio");
+  await showSong(id,"audio");
+  if(errors.length){
+    const el = $("#upInfo");
+    if(el){ el.textContent = "Upload failed → " + errors.join(" | "); el.style.color = "var(--bad)"; }
+  }
 }
 
 /* ---------- realtime (bandmates' changes show up live) ---------- */
@@ -540,7 +754,7 @@ async function showMembers(){
 async function removeSongFiles(songIds){
   if(!songIds.length) return;
   const { data } = await sb.from("song_files").select("path").in("song_id", songIds);
-  if(data?.length) await sb.storage.from(BUCKET).remove(data.map(d=>d.path));
+  if(data?.length) await Promise.allSettled(data.map(d => S3.remove(d.path)));
 }
 
 /* ---------- click delegation ---------- */
@@ -579,6 +793,8 @@ document.addEventListener("click", async e => {
       download(s.title, `${s.title}\n\n${$("#lyrics").value}`); break; }
     case "del-task":
       await sb.from("song_tasks").delete().eq("id",id); showSong(openSong.id,"progress"); break;
+    case "s3-settings": s3Form(); break;
+    case "s3-clear": S3.clear(); toast("Storage keys cleared"); closeModal(); break;
     case "new-song": songForm(); break;
     case "open-song": showSong(id); break;
     case "close": closeModal(); break;
@@ -588,7 +804,7 @@ document.addEventListener("click", async e => {
     case "del-file": {
       if(!confirm("Delete this audio file?")) return;
       const f = songExtra.files.find(x=>x.id===id);
-      await sb.storage.from(BUCKET).remove([f.path]);
+      try { await S3.remove(f.path); } catch(err){ toast(err.message); }
       await sb.from("song_files").delete().eq("id",id);
       showSong(openSong.id,"audio"); break; }
     case "add-note": {
@@ -607,6 +823,31 @@ document.addEventListener("click", async e => {
   }
 });
 document.addEventListener("keydown", e => { if(e.key==="Escape" && openSong) closeModal(); });
+</script>
+<script>
+/* ambient dot field (static under reduced-motion) */
+(function(){
+  const c=document.getElementById("dotfield"), g=c.getContext("2d"), GAP=28;
+  const still=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W,H,mx=-999,my=-999,raf=0;
+  function draw(){
+    raf=0; g.clearRect(0,0,W,H);
+    for(let y=GAP/2;y<H;y+=GAP) for(let x=GAP/2;x<W;x+=GAP){
+      const t=Math.max(0,1-Math.hypot(x-mx,y-my)/170);
+      g.fillStyle="rgba(255,255,255,"+(.11+t*.75).toFixed(3)+")";
+      g.beginPath(); g.arc(x,y,1+t*1.5,0,6.2832); g.fill();
+    }
+  }
+  function size(){
+    const d=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+    c.width=W*d; c.height=H*d; c.style.width=W+"px"; c.style.height=H+"px"; g.setTransform(d,0,0,d,0,0); draw();
+  }
+  addEventListener("resize",size); size();
+  if(!still){
+    addEventListener("pointermove",e=>{ mx=e.clientX; my=e.clientY; if(!raf) raf=requestAnimationFrame(draw); });
+    document.addEventListener("pointerleave",()=>{ mx=my=-999; if(!raf) raf=requestAnimationFrame(draw); });
+  }
+})();
 </script>
 </body>
 </html>
