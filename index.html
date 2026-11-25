@@ -7,160 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
-<style>
-  @font-face{
-    font-family:"Ndot 55";
-    src:url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.woff2") format("woff2"),
-        url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.woff") format("woff"),
-        url("https://db.onlinewebfonts.com/t/5f21b8d13dad527377311ec2d5388bdf.ttf") format("truetype");
-    font-display:swap;
-  }
-  :root{
-    --void:#000; --paper:#fff; --dim:#6a6a6a; --dim-2:#333; --dim-3:#9a9a9a;
-    --panel:#0a0a0a; --panel2:#0e0e0e; --panel3:#141414; --line:#262626; --line2:#3a3a3a;
-    --ok:#9ae6b4; --warn:#f6d57a; --bad:#ff8a8a;
-    --ease:cubic-bezier(.16,.84,.44,1);
-    --mono:'Space Mono',ui-monospace,Menlo,monospace;
-    --pix:'Ndot 55','Open Sans',monospace;
-    /* aliases used by the app */
-    --bg:var(--void); --text:var(--paper); --muted:var(--dim); --accent:var(--paper); --accent2:var(--ok); --danger:var(--bad);
-    color-scheme:dark;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:var(--void);color:var(--paper);font-family:'Open Sans',system-ui,sans-serif;min-height:100%}
-  body{font-size:13px;line-height:1.5}
-  ::selection{background:var(--paper);color:var(--void)}
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-thumb{background:var(--line)}
-  ::-webkit-scrollbar-track{background:transparent}
-  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
-  a{color:inherit;text-decoration:none}
-
-  /* ambient layers */
-  #dotfield{position:fixed;inset:0;z-index:0;display:block}
-  .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  .scanline-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:repeating-linear-gradient(to bottom,rgba(255,255,255,.018) 0,rgba(255,255,255,.018) 1px,transparent 1px,transparent 3px)}
-
-  /* form primitives */
-  input,select,textarea{width:100%;background:transparent;border:1px solid var(--line);color:var(--paper);padding:10px 11px;outline:none;letter-spacing:.03em;border-radius:0;transition:border-color .25s var(--ease)}
-  input:focus,select:focus,textarea:focus{border-color:var(--paper)}
-  input::placeholder,textarea::placeholder{color:var(--dim-2)}
-  select option{background:#0a0a0a}
-  textarea{resize:vertical;min-height:90px;line-height:1.6}
-  input[type=checkbox]{accent-color:var(--paper);width:13px;height:13px}
-  label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:12px 0 7px}
-  button{background:transparent;border:1px solid var(--line2);color:var(--paper);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;padding:9px 14px;cursor:pointer;border-radius:0;transition:all .25s var(--ease)}
-  button:hover{border-color:var(--paper)}
-  button.primary{background:var(--paper);color:var(--void);border-color:var(--paper);font-weight:600}
-  button.primary:hover{background:transparent;color:var(--paper)}
-  button.danger{color:var(--bad)}
-  button.danger:hover{border-color:var(--bad)}
-  button.ghost{background:none;border-color:transparent;color:var(--dim)}
-  button.ghost:hover{color:var(--paper)}
-  button.ghost.danger:hover{color:var(--bad)}
-  button:disabled{opacity:.4;cursor:not-allowed}
-  .hidden{display:none!important}
-  .muted{color:var(--dim)}
-  .row{display:flex;gap:10px;align-items:center}
-  .grow{flex:1}
-  kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);padding:1px 5px;color:var(--dim-3)}
-
-  /* pixel headings */
-  .wordmark,.vmark,main h1,.modal h2,.vcard h2{font-family:var(--pix);font-weight:400}
-  .wordmark{font-size:18px;letter-spacing:.1em;margin:0}
-  .wordmark span,.vmark span{opacity:.45}
-
-  /* ---------- VOIDAUTH: login + setup ---------- */
-  .void{position:fixed;inset:0;display:grid;place-items:center;padding:20px;overflow:auto;z-index:30;background:transparent}
-  .vcard{position:relative;z-index:1;width:100%;max-width:400px;padding:30px 28px 22px;background:var(--panel);border:1px solid var(--line)}
-  .vcard::before,.vcard::after,.modal::before,.modal::after{content:'';position:absolute;width:14px;height:14px;border:2px solid var(--paper);opacity:.8;pointer-events:none}
-  .vcard::before,.modal::before{top:-7px;left:-7px;border-width:2px 0 0 2px}
-  .vcard::after,.modal::after{bottom:-7px;right:-7px;border-width:0 2px 2px 0}
-  .eyebrow{display:flex;gap:10px;align-items:center;font-size:11px;letter-spacing:.32em;color:var(--dim);text-transform:uppercase}
-  .dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--paper);animation:pulse 1.6s ease-in-out infinite;flex:none}
-  @keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-  @keyframes flicker-in{0%{opacity:0}50%{opacity:.5}100%{opacity:1}}
-  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-  .vmark{font-size:38px;letter-spacing:.12em;line-height:1;margin:20px 0 10px}
-  .vsub{margin:0;color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
-  .boot{margin-top:14px;font:11px/1.8 var(--mono);letter-spacing:.06em;color:var(--dim)}
-  .boot div{opacity:0;animation:flicker-in .25s steps(2) forwards}
-  .boot div:nth-child(1){animation-delay:.15s}.boot div:nth-child(2){animation-delay:.6s}.boot div:nth-child(3){animation-delay:1.05s}
-  .cursor{display:inline-block;width:7px;height:12px;background:var(--paper);margin-left:4px;vertical-align:middle;animation:blink 1s steps(1) infinite}
-  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:22px 0 4px}
-  .seg button{border:0;border-bottom:2px solid transparent;color:var(--dim);padding:11px 6px;font-size:10.5px}
-  .seg button.on{color:var(--paper);border-bottom-color:var(--paper);background:var(--panel3)}
-  .vcard label{margin:16px 0 7px}
-  .vcard input{padding:11px 12px}
-  .pw{position:relative}
-  .pw input{padding-right:64px}
-  .pw button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;color:var(--dim);font-size:9.5px;padding:6px 8px}
-  .pw button:hover{color:var(--paper)}
-  .vbtn{width:100%;margin-top:22px;padding:13px;font-size:11px}
-  .status{display:flex;gap:8px;align-items:center;margin-top:16px;min-height:1.5em;font:11px/1.4 var(--mono);letter-spacing:.05em;color:var(--dim)}
-  .sdot{width:6px;height:6px;background:var(--dim);flex:none}
-  .status.busy{color:var(--paper)} .status.busy .sdot{background:var(--paper);animation:pulse 1s infinite}
-  .status.err{color:var(--bad)} .status.err .sdot{background:var(--bad)}
-  .status.ok{color:var(--ok)} .status.ok .sdot{background:var(--ok)}
-  .vfoot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim-2);text-align:center}
-  .vcard h2{margin:16px 0 8px;font-size:20px;letter-spacing:.08em}
-
-  /* ---------- app layout ---------- */
-  #app{position:relative;z-index:5;display:grid;grid-template-columns:270px 1fr;min-height:100vh}
-  aside{background:rgba(0,0,0,.72);backdrop-filter:blur(6px);border-right:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;height:100vh;overflow:auto}
-  .proj{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-left:2px solid transparent;background:none;text-transform:none;letter-spacing:.03em;font-size:13px}
-  .proj:hover{background:var(--panel2)}
-  .proj.active{background:var(--panel3);border-left-color:var(--paper)}
-  .proj small{display:block;color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
-  main{padding:4vh 4vw;max-width:980px;width:100%}
-  main h1{font-size:clamp(24px,4vw,34px);letter-spacing:.06em}
-  main h3{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);font-weight:600}
-  .badge{font-size:9px;letter-spacing:.16em;padding:3px 7px;border:1px solid var(--line);color:var(--dim-3);text-transform:uppercase;font-family:var(--mono);vertical-align:middle}
-  .song{display:grid;grid-template-columns:34px 1fr 150px auto;gap:14px;align-items:center;padding:14px;background:var(--panel);border:1px solid var(--line);margin-bottom:-1px;cursor:pointer;transition:background .25s var(--ease)}
-  .song:hover{background:var(--panel2);border-color:var(--line2);position:relative}
-  .num{color:var(--dim);text-align:center;font-family:var(--mono)}
-  .bar{height:6px;background:var(--line)}
-  .bar>i{display:block;height:100%;background:var(--paper);transition:width .25s var(--ease)}
-  .empty{padding:34px 16px;text-align:center;color:var(--dim);font-size:11px;letter-spacing:.16em;text-transform:uppercase;border:1px dashed var(--line2)}
-  .song[draggable=true]{cursor:grab}
-  .song.dragging{opacity:.35}
-  .song.drop-before{box-shadow:0 -2px 0 var(--paper)}
-  .song.drop-after{box-shadow:0 2px 0 var(--paper)}
-
-  /* modal */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;justify-content:center;align-items:flex-start;padding:24px 14px;overflow:auto;z-index:40;animation:flicker-in .2s}
-  .modal{position:relative;background:var(--panel);border:1px solid var(--line2);width:100%;max-width:720px;padding:22px;margin:auto 0}
-  .modal h2{font-size:20px;letter-spacing:.08em}
-  .tabs{display:flex;border-bottom:1px solid var(--line);margin:16px 0 18px;flex-wrap:wrap}
-  .tab{border:0;border-bottom:2px solid transparent;background:none;color:var(--dim);padding:10px 16px}
-  .tab:hover{color:var(--paper)}
-  .tab.active{color:var(--paper);border-bottom-color:var(--paper)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
-  .step{display:flex;gap:10px;align-items:center;padding:12px;background:var(--panel);cursor:pointer;margin:0;color:var(--dim-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-  .step input{width:auto}
-  .step.done{color:var(--paper);background:var(--panel3)}
-  .file,.note{padding:12px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
-  .file audio{width:100%;margin-top:8px}
-  .note{white-space:pre-wrap}
-  .note small{display:block;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.06em;margin-bottom:6px}
-  .task{display:flex;gap:10px;align-items:center;padding:7px 0;margin:0;color:var(--paper);font-size:13px;letter-spacing:0;text-transform:none;border-bottom:1px solid var(--line)}
-  .task input[type=checkbox]{width:auto}
-  .task.done span{text-decoration:line-through;color:var(--dim)}
-  .task button{margin-left:auto}
-  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--paper);color:var(--void);padding:10px 16px;z-index:70;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
-
-  @media (max-width:760px){
-    #app{grid-template-columns:1fr}
-    aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
-    .song{grid-template-columns:28px 1fr auto}
-    .song .bar{grid-column:2/4}
-    .grid2{grid-template-columns:1fr 1fr}
-  }
-  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001s!important}}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <canvas id="dotfield" aria-hidden="true"></canvas>
@@ -206,11 +53,24 @@
 <div id="app" class="hidden">
   <aside>
     <div class="row"><h2 class="grow wordmark">SONG<span>BOOK</span></h2><button class="ghost" data-act="s3-settings" title="Storage (S3) keys">Storage</button><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
+    <button class="proj" id="homeBtn" data-act="go-home">Home · Activity</button>
     <button class="primary" data-act="new-project">+ New project</button>
     <input id="search" placeholder="Search songs &amp; lyrics…">
     <div id="projList"></div>
   </aside>
   <main id="main"></main>
+</div>
+
+<!-- Player bar -->
+<div id="pbar" class="pbar hidden">
+  <div class="pb-info"><div class="pb-art" id="pbArt"></div><div style="min-width:0"><div class="pb-title" id="pbTitle"></div><div class="pb-sub" id="pbSub"></div></div></div>
+  <div class="pb-ctl">
+    <button data-act="pl-prev" title="Previous">|&#9664;&#65038;</button>
+    <button class="primary" id="pbPlay" data-act="pl-toggle" title="Play / pause (Space)">&#9654;&#65038;</button>
+    <button data-act="pl-next" title="Next">&#9654;&#65038;|</button>
+  </div>
+  <div class="pb-seek"><span id="pbCur">0:00</span><div class="seek"><div class="marks" id="pbMarks"></div><input type="range" id="pbRange" min="0" max="1000" value="0" aria-label="Seek"></div><span id="pbDur">0:00</span></div>
+  <div class="pb-opt"><button class="ghost" id="pbAuto" data-act="pl-auto">Autoplay: on</button><button data-act="pl-comment">+ Comment</button></div>
 </div>
 
 <div id="modalRoot"></div>
@@ -219,17 +79,18 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
 <script src="s3.js"></script>
+<script src="player.js"></script>
 <script>
 /* ---------- CONFIG ---------- */
 // Either paste your values here, or leave blank and the app will ask once (stored in this browser).
 const SUPABASE_URL = "https://hsdwhxklsjanzulyzufj.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_BHEI6t16hd7ff3Xl8Q5yQA_weW8_EWI";
-const BUCKET = "song-audio";
 
 const STEPS = [
   ["idea","Idea"],["lyrics","Lyrics written"],["demo","Demo recorded"],["recording","Recording"],
   ["mixing","Mixing"],["mastering","Mastering"],["released","Released"]
 ];
+const PLAY = "▶︎", PAUSE = "❚❚";
 
 /* ---------- S3 (AWS Signature V4 query presigning, via WebCrypto) ---------- */
 const S3 = (() => {
@@ -299,7 +160,7 @@ const S3 = (() => {
     async put(key, blob, type){
       let res;
       try { res = await fetch(await signed("PUT", key, 900), { method:"PUT", body:blob, headers:{ "Content-Type": type || "application/octet-stream" } }); }
-      catch(e){ if(/configured/.test(e.message)) throw e; throw new Error("S3 upload blocked: check the bucket's CORS settings (" + e.message + ")"); }
+      catch(e){ if(/configured|Signing service/.test(e.message)) throw e; throw new Error("S3 upload blocked: check the bucket's CORS settings (" + e.message + ")"); }
       await check(res, "S3 upload");
     },
     async remove(key){ await check(await fetch(await signed("DELETE", key, 300), { method:"DELETE" }), "S3 delete"); },
@@ -311,21 +172,56 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtSize = b => b > 1e6 ? (b/1e6).toFixed(1)+" MB" : Math.round((b||0)/1e3)+" KB";
 const fmtDate = d => new Date(d).toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+const fmtTime = s => (s == null || !isFinite(s)) ? "–:––" : Math.floor(s/60) + ":" + String(Math.floor(s) % 60).padStart(2, "0");
+function parseTime(str){
+  str = String(str||"").trim();
+  if(/^\d+(\.\d+)?$/.test(str)) return +str;
+  const m = str.match(/^(\d+):(\d{1,2})(?:\.\d+)?$/);
+  return m ? (+m[1])*60 + (+m[2]) : 0;
+}
+function ago(iso){
+  const s = (Date.now() - new Date(iso).getTime())/1000;
+  if(s < 60) return "just now";
+  if(s < 3600) return Math.floor(s/60) + "m ago";
+  if(s < 86400) return Math.floor(s/3600) + "h ago";
+  if(s < 7*86400) return Math.floor(s/86400) + "d ago";
+  return new Date(iso).toLocaleDateString([], {day:"numeric", month:"short"});
+}
+const nameOf = e => (e || "someone").split("@")[0];
+const initials = e => nameOf(e).slice(0,2).toUpperCase();
+function newToken(){
+  const a = new Uint8Array(20); crypto.getRandomValues(a);
+  return [...a].map(x => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[x % 62]).join("");
+}
+const shareUrl = t => new URL("listen.html", location.href).href + "?t=" + t;
 let toastT;
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.remove("hidden"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"),2500); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.remove("hidden"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"),3200); }
 function progress(song){ const s=song.steps||{}; return Math.round(STEPS.filter(([k])=>s[k]).length/STEPS.length*100); }
 function lsGet(k){ try{return localStorage.getItem(k)}catch{return null} }
 function lsSet(k,v){ try{localStorage.setItem(k,v)}catch{} }
 
 /* ---------- state ---------- */
 let sb, user;
-let projects = [], songs = [];
-let currentProject = null;     // id
-let openSong = null;           // {id, tab}
-let songExtra = {files:[], notes:[], tasks:[]};
-let query = "";
-let chan = null, rtTimer;
-const MAX_BYTES = 3 * 1024 * 1024;   // uploads are compressed to fit under this
+let projects = [], songs = [], files = [], feed = [];
+let filesBySong = new Map();
+let coverPath = {};                   // projectId -> S3 key of its cover
+let comments = {};                    // fileId -> [comment]
+let presence = [];                    // other people's recent presence rows in the current project
+let currentProject = null, view = "home", projTab = "tracks";
+let openSong = null;                  // {id, tab}
+let songExtra = { files:[], notes:[], tasks:[] };
+let query = "", chan = null, rtTimer, prevSeen = null;
+const MAX_BYTES = 3 * 1024 * 1024;    // uploads are compressed to fit under this
+
+/* signed-URL cache (links last 1h; we reuse them for 50 min) */
+const urlCache = new Map();
+async function signMany(paths){
+  const need = [...new Set(paths)].filter(p => { const c = urlCache.get(p); return !c || Date.now() - c.at > 50*60e3; });
+  if(need.length){ const u = await S3.urls(need, 3600); need.forEach((p,i) => urlCache.set(p, { u:u[i], at:Date.now() })); }
+  return paths.map(p => urlCache.get(p).u);
+}
+const signOne = async p => (await signMany([p]))[0];
+const coverUrl = pid => { const p = coverPath[pid]; return p && urlCache.get(p)?.u; };
 
 /* ---------- boot ---------- */
 (async function boot(){
@@ -348,10 +244,20 @@ async function route(session){
   $("#auth").classList.toggle("hidden", !!user);
   $("#app").classList.toggle("hidden", !user);
   if(user){
+    initSeen();
     await sb.rpc("accept_my_invites");   // turns pending invites for this email into memberships
     await loadAll();
     subscribe();
-  }
+    if(!window._beat) window._beat = setInterval(presenceBeat, 20000);
+  } else { player.pause(); }
+}
+
+/* "since you were last here": remembered per browser; stable across refreshes within a tab */
+function initSeen(){
+  const key = "sb_seen_" + user.id, sk = "sb_prev_" + user.id;
+  let prev = null; try { prev = sessionStorage.getItem(sk); } catch {}
+  if(!prev){ prev = lsGet(key) || new Date().toISOString(); try { sessionStorage.setItem(sk, prev); } catch {} }
+  prevSeen = prev; lsSet(key, new Date().toISOString());
 }
 
 /* ---------- auth ---------- */
@@ -386,64 +292,269 @@ $("#authForm").addEventListener("submit", async e => {
 
 /* ---------- data ---------- */
 async function loadAll(){
-  const [p, s] = await Promise.all([
+  const [p, s, f, a] = await Promise.all([
     sb.from("projects").select("*").order("created_at"),
     sb.from("songs").select("*").order("track_number",{nullsFirst:false}).order("created_at"),
+    sb.from("song_files").select("id,song_id,path,name,label,size,duration,is_current,created_at").order("created_at"),
+    sb.from("activity").select("*").order("created_at",{ascending:false}).limit(60),
   ]);
-  if(p.error || s.error){ toast((p.error||s.error).message); return; }
-  projects = p.data; songs = s.data;
-  if(!projects.find(x=>x.id===currentProject)) currentProject = projects[0]?.id || null;
+  const bad = [p,s,f,a].find(r => r.error);
+  if(bad){ toast(bad.error.message + (/column|relation|does not exist/.test(bad.error.message) ? " (have you run schema-v2.sql?)" : "")); return; }
+  projects = p.data; songs = s.data; files = f.data; feed = a.data;
+  filesBySong = new Map();
+  files.forEach(x => { if(!filesBySong.has(x.song_id)) filesBySong.set(x.song_id, []); filesBySong.get(x.song_id).push(x); });
+  if(currentProject && !projects.find(x => x.id===currentProject)){ currentProject = null; view = "home"; }
   render();
+  loadCovers();
+}
+
+/* the version a song plays: pinned/current, else newest */
+function currentFile(songId){
+  const fs = filesBySong.get(songId); if(!fs || !fs.length) return null;
+  const byNew = (a,b) => b.created_at.localeCompare(a.created_at);
+  return fs.filter(f => f.is_current).sort(byNew)[0] || fs.slice().sort(byNew)[0];
+}
+
+async function loadCovers(){
+  const { data } = await sb.from("project_art").select("project_id,path,is_cover,created_at").order("created_at");
+  const next = {};
+  (data||[]).forEach(a => { if(!next[a.project_id]) next[a.project_id] = a.path; });
+  (data||[]).forEach(a => { if(a.is_cover) next[a.project_id] = a.path; });
+  const changed = JSON.stringify(next) !== JSON.stringify(coverPath);
+  coverPath = next;
+  try { await signMany(Object.values(next)); } catch { return; }
+  if(changed) render();
 }
 
 /* ---------- render ---------- */
-function render(){
-  const songMatch = s => !query || [s.title, s.lyrics, s.musical_key].some(v => (v||"").toLowerCase().includes(query));
-  const shownProjects = projects.filter(p => !query || p.title.toLowerCase().includes(query) || songs.some(s => s.project_id===p.id && songMatch(s)));
-  $("#projList").innerHTML = shownProjects.map(p => {
-    const n = songs.filter(s=>s.project_id===p.id).length;
-    return `<button class="proj ${p.id===currentProject?"active":""}" data-act="select-project" data-id="${p.id}">
-      ${esc(p.title)}<small>${p.type==="album"?"Album":"Single"} · ${n} song${n===1?"":"s"}${p.user_id!==user.id?" · shared":""}</small></button>`;
-  }).join("") || `<p class="muted">${query?"No matches.":"No projects yet."}</p>`;
+function songMatch(s){ return !query || [s.title, s.lyrics, s.musical_key].some(v => (v||"").toLowerCase().includes(query)); }
 
-  const p = projects.find(x=>x.id===currentProject);
-  if(!p){ $("#main").innerHTML = `<div class="empty">Create your first project to get started.</div>`; return; }
-  const all = songs.filter(s=>s.project_id===p.id);
-  const list = all.filter(songMatch);
-  const avg = all.length ? Math.round(all.reduce((a,s)=>a+progress(s),0)/all.length) : 0;
+function render(){
+  renderSidebar();
+  const p = projects.find(x => x.id===currentProject);
+  if(view==="project" && p) renderProject(p); else renderHome();
+  markNow(player.state());
+  pokePresence();
+}
+
+function renderSidebar(){
+  const shown = projects.filter(p => !query || p.title.toLowerCase().includes(query) || songs.some(s => s.project_id===p.id && songMatch(s)));
+  $("#projList").innerHTML = shown.map(p => {
+    const n = songs.filter(s=>s.project_id===p.id).length;
+    return `<button class="proj ${view==="project"&&p.id===currentProject?"active":""}" data-act="select-project" data-id="${p.id}">
+      ${esc(p.title)}<small>${p.type} · ${n} song${n===1?"":"s"}${p.user_id!==user.id?" · shared":""}</small></button>`;
+  }).join("") || `<p class="muted">${query?"No matches.":"No projects yet."}</p>`;
+  $("#homeBtn").classList.toggle("active", view==="home");
+}
+
+/* ----- home: activity feed ----- */
+const isNew = a => new Date(a.created_at) > new Date(prevSeen) && a.actor !== user.id;
+function renderHome(){
+  const hr = new Date().getHours();
+  const hello = (hr<5?"Late one":hr<12?"Good morning":hr<18?"Good afternoon":"Good evening") + ", " + nameOf(user.email);
+  const nNew = feed.filter(isNew).length;
+  const plays = songs.reduce((a,s) => a + (s.play_count||0), 0);
+  const pname = id => projects.find(p => p.id===id)?.title || "";
   $("#main").innerHTML = `
-    <div class="row" style="align-items:flex-start">
-      <div class="grow">
-        <h1 style="margin:0">${esc(p.title)} <span class="badge">${p.type}</span></h1>
-        <div class="muted">${esc(p.artist||"")}</div>
-        ${p.description?`<p>${esc(p.description)}</p>`:""}
-      </div>
-      <button data-act="show-members">👥 Members</button>
-      <button data-act="export-project">Export lyrics</button>
-      <button data-act="edit-project">Edit</button>
+    <div class="eyebrow"><span class="dot-pulse"></span><span>Private workspace</span></div>
+    <div class="page-head" style="margin-top:10px"><h1>${esc(hello)}.</h1>
+      <p>${nNew ? `${nNew} new update${nNew===1?"":"s"} from your bandmates since you were last here` : "You're all caught up"}</p></div>
+    <div class="stats">
+      <div class="stat"><div class="n">${projects.length}</div><div class="l">Projects</div></div>
+      <div class="stat"><div class="n">${songs.length}</div><div class="l">Songs</div></div>
+      <div class="stat"><div class="n">${files.length}</div><div class="l">Audio versions</div></div>
+      <div class="stat"><div class="n">${plays}</div><div class="l">Total plays</div></div>
     </div>
-    <div class="row" style="margin:14px 0"><div class="bar grow"><i style="width:${avg}%"></i></div><span class="muted">${avg}% overall</span></div>
-    <div class="row" style="margin-bottom:12px"><h3 class="grow" style="margin:0">Songs</h3><button class="primary" data-act="new-song">+ Add song</button></div>
-    ${list.map((s,i)=>`
-      <div class="song" data-act="open-song" data-id="${s.id}" ${query?"":`draggable="true" title="Drag to reorder"`}>
-        <div class="num">${s.track_number ?? i+1}</div>
-        <div><strong>${esc(s.title)}</strong><div class="muted" style="font-size:12px">${[s.bpm?s.bpm+" BPM":"", s.musical_key].filter(Boolean).join(" · ")}</div></div>
-        <div class="bar"><i style="width:${progress(s)}%"></i></div>
-        <div class="muted">${progress(s)}%</div>
-      </div>`).join("") || `<div class="empty">No songs in this project yet.</div>`}
+    <div class="section-label">Projects</div>
+    ${projects.length ? `<div class="pgrid">${projects.map(p => {
+        const cu = coverUrl(p.id), n = songs.filter(s => s.project_id===p.id), pl = n.reduce((a,s) => a+(s.play_count||0), 0);
+        return `<button class="pcard" data-act="select-project" data-id="${p.id}"><div class="cv" style="${cu?`background-image:url('${esc(cu)}')`:""}">${cu?"":esc(p.title.slice(0,1).toUpperCase())}</div>
+          <div class="pc"><b>${esc(p.title)}</b><span>${p.type} · ${n.length} tracks · ${pl} plays</span></div></button>`; }).join("")}</div>`
+      : `<div class="empty">Create your first project to get started.</div>`}
+    <div class="section-label">Activity</div>
+    ${feed.length ? `<div class="feed">${feed.map(a => `
+      <button class="fi ${isNew(a)?"new":""}" data-act="open-feed" data-project="${a.project_id}" data-song="${a.song_id||""}">
+        <div class="t">${isNew(a)?"NEW · ":""}${esc(ago(a.created_at))}</div>
+        <div><b>${esc(a.actor===user.id ? "You" : nameOf(a.actor_email))}</b> ${esc(a.summary)} <span class="muted">· ${esc(pname(a.project_id))}</span></div></button>`).join("")}</div>`
+      : `<div class="empty">Nothing yet. Activity from you and your bandmates will show up here.</div>`}
   `;
+}
+
+/* ----- a project ----- */
+function renderProject(p){
+  const all = songs.filter(s => s.project_id===p.id);
+  const list = all.filter(songMatch);
+  const avg = all.length ? Math.round(all.reduce((a,s) => a+progress(s), 0)/all.length) : 0;
+  const plays = all.reduce((a,s) => a + (s.play_count||0), 0);
+  const cu = coverUrl(p.id);
+  let body = "";
+  if(projTab==="art"){
+    body = `<div id="artBox" class="muted">Loading…</div>`;
+  } else {
+    body = `<div class="row" style="margin-bottom:12px"><h3 class="grow" style="margin:0">Tracks</h3>
+        <button data-act="play-all">${PLAY} Play all</button><button class="primary" data-act="new-song">+ Add song</button></div>` +
+      (list.map((s,i) => {
+        const f = currentFile(s.id), n = s.track_number ?? i+1;
+        return `<div class="song" data-act="play-song" data-id="${s.id}" ${query?"":`draggable="true" title="Click to play · drag to reorder"`}>
+          <button class="pbtn" data-act="play-song" data-id="${s.id}">${PLAY}</button>
+          <div class="sinfo"><span class="eq"><i></i><i></i><i></i></span><span class="no">${String(n).padStart(2,"0")}</span><strong>${esc(s.title)}</strong>
+            ${f ? `<span class="vtag">${esc(f.label||f.name)}</span>` : `<span class="vtag">no audio</span>`}
+            ${Number(s.segue_seconds) > 0 ? `<span class="vtag flow" title="Flows into the next track">↘ flows on</span>` : ""}
+            <div class="sub">${[s.bpm?s.bpm+" BPM":"", s.musical_key, progress(s)+"%"].filter(Boolean).join(" · ")} · ${PLAY} <span data-plays="${s.id}">${s.play_count||0}</span></div></div>
+          <div class="dots" data-dots="${s.id}">${dotsFor(s.id)}</div>
+          <div class="bar"><i style="width:${progress(s)}%"></i></div>
+          <button class="ghost btn-sm" data-act="open-song" data-id="${s.id}">Open</button>
+        </div>`; }).join("") || `<div class="empty">No songs in this project yet.</div>`);
+  }
+  $("#main").innerHTML = `
+    <div class="phead">
+      <div class="cover" style="${cu?`background-image:url('${esc(cu)}')`:"display:none"}"></div>
+      <div class="grow"><h1 style="margin:0">${esc(p.title)} <span class="badge">${p.type}</span></h1>
+        <div class="muted">${esc(p.artist||"")}</div>
+        ${p.description ? `<p style="margin-top:6px">${esc(p.description)}</p>` : ""}
+        <div id="viewers"></div></div>
+      <div class="btns"><button data-act="show-members">Members</button><button data-act="share-project">Share</button><button data-act="export-project">Export lyrics</button><button data-act="edit-project">Edit</button></div>
+    </div>
+    <div class="row" style="margin:16px 0 4px"><div class="bar grow"><i style="width:${avg}%"></i></div><span class="muted mono small">${avg}% done · ${PLAY} ${plays}</span></div>
+    <div class="tabs">
+      <button class="tab ${projTab==="tracks"?"active":""}" data-act="proj-tab" data-tab="tracks">Tracks</button>
+      <button class="tab ${projTab==="art"?"active":""}" data-act="proj-tab" data-tab="art">Art</button>
+    </div>
+    ${body}`;
+  drawPresence();
+  if(projTab==="art") loadArtTab(p.id);
+}
+
+/* ---------- player glue ---------- */
+const player = new Player({
+  getUrl: it => signOne(it.path),
+  onState: st => onPlayerState(st),
+  onCount: it => {
+    sb.rpc("record_play", { p_song: it.songId, p_file: it.fileId }).then(() => {
+      const s = songs.find(x => x.id===it.songId);
+      if(s){ s.play_count = (s.play_count||0) + 1; document.querySelectorAll(`[data-plays="${s.id}"]`).forEach(el => el.textContent = s.play_count); }
+    });
+  },
+  onError: e => toast(e.message),
+});
+
+function itemFor(s, f){
+  return { key:f.id, songId:s.id, fileId:f.id, projectId:s.project_id, title:s.title, label:f.label||f.name,
+           path:f.path, duration:f.duration, overlap:Number(s.segue_seconds)||0 };
+}
+function playSong(sid, startAt = 0){
+  const s = songs.find(x => x.id===sid); if(!s) return;
+  const cf = currentFile(sid);
+  if(!cf){ toast("No audio yet. Upload a version to play this song."); showSong(sid, "audio"); return; }
+  const st = player.state();
+  if(!startAt && st.item && st.item.songId===sid && st.item.fileId===cf.id){ player.toggle(); return; }
+  const queue = songs.filter(x => x.project_id===s.project_id).map(x => { const f = currentFile(x.id); return f && itemFor(x, f); }).filter(Boolean);
+  player.setQueue(queue, queue.findIndex(q => q.songId===sid), startAt);
+}
+function playFile(fid, startAt = 0){
+  const f = files.find(x => x.id===fid) || songExtra.files.find(x => x.id===fid); if(!f) return;
+  const s = songs.find(x => x.id===f.song_id); if(!s) return;
+  const cf = currentFile(s.id);
+  if(cf && cf.id===fid) return playSong(s.id, startAt);
+  player.setQueue([itemFor(s, f)], 0, startAt);
+}
+
+let seeking = false, lastFile = null, lastMarks = "";
+function onPlayerState(st){
+  const it = st.item;
+  $("#pbar").classList.toggle("hidden", !it);
+  document.body.classList.toggle("has-player", !!it);
+  if(it){
+    const proj = projects.find(p => p.id===it.projectId);
+    $("#pbTitle").textContent = it.title;
+    $("#pbSub").textContent = [proj?.title, it.label].filter(Boolean).join(" · ");
+    $("#pbPlay").textContent = st.playing ? PAUSE : PLAY;
+    $("#pbCur").textContent = fmtTime(st.time); $("#pbDur").textContent = fmtTime(st.duration);
+    if(!seeking && st.duration) $("#pbRange").value = Math.round(st.time/st.duration*1000);
+    const cu = coverUrl(it.projectId); $("#pbArt").style.backgroundImage = cu ? `url("${cu}")` : "";
+    if(lastFile !== it.fileId){ lastFile = it.fileId; loadComments(it.fileId).then(() => drawMarks()); }
+    drawMarks(st);
+  }
+  $("#pbAuto").textContent = "Autoplay: " + (st.autoplay ? "on" : "off");
+  markNow(st); updateWaves(st);
+}
+function markNow(st){
+  const sid = st.item?.songId;
+  document.querySelectorAll(".song").forEach(r => {
+    const on = r.dataset.id === sid;
+    r.classList.toggle("now", on); r.classList.toggle("playing", on && st.playing);
+    const b = r.querySelector(".pbtn"); if(b) b.textContent = on && st.playing ? PAUSE : PLAY;
+  });
+}
+function drawMarks(st = player.state()){
+  const it = st.item, list = it ? (comments[it.fileId]||[]) : [], dur = st.duration;
+  const sig = (it?.fileId||"") + "|" + dur.toFixed(1) + "|" + list.map(c => c.id + c.at_seconds).join(",");
+  if(sig === lastMarks) return; lastMarks = sig;
+  $("#pbMarks").innerHTML = dur ? list.map(c => `<div class="mark" style="left:${Math.min(100, c.at_seconds/dur*100).toFixed(2)}%" title="${esc(fmtTime(c.at_seconds) + " " + c.body)}"></div>`).join("") : "";
+}
+const rng = $("#pbRange");
+rng.addEventListener("pointerdown", () => seeking = true);
+addEventListener("pointerup", () => seeking = false);
+rng.addEventListener("input", () => { const d = player.state().duration; if(d) player.seek(rng.value/1000*d); });
+const savedAuto = lsGet("sb_autoplay"); if(savedAuto === "0") player.autoplay = false;
+
+/* ---------- comments (timestamped, per version) ---------- */
+async function loadComments(fileId){
+  const { data, error } = await sb.from("song_comments").select("*").eq("file_id", fileId).order("at_seconds");
+  if(!error) comments[fileId] = data;
+  return comments[fileId] || [];
+}
+function commentModal(){
+  const st = player.state(); if(!st.item) return;
+  const it = st.item, back = openSong ? { ...openSong } : null;
+  modal(`<h2 style="margin-top:0">Comment</h2>
+    <p class="muted" style="font-size:12px">${esc(it.title)} · ${esc(it.label)}</p>
+    <form id="cForm"><label>Time</label><input name="t" value="${fmtTime(st.time)}" style="font-family:var(--mono)">
+      <label>Comment</label><textarea name="body" required placeholder="e.g. vocals too loud here"></textarea>
+      <div class="row" style="margin-top:16px"><span class="grow"></span><button type="button" data-act="close">Cancel</button><button class="primary">Add comment</button></div></form>`);
+  $("#cForm textarea").focus();
+  $("#cForm").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const { error } = await sb.from("song_comments").insert({ song_id: it.songId, file_id: it.fileId, at_seconds: parseTime(fd.get("t")), body: fd.get("body").trim() });
+    if(error) return toast(error.message);
+    await loadComments(it.fileId); lastMarks = ""; drawMarks();
+    closeModal(); toast("Comment added");
+    if(back) showSong(back.id, back.tab);
+  };
+}
+
+/* ---------- presence (the dots) ---------- */
+let poke;
+function pokePresence(){ clearTimeout(poke); poke = setTimeout(presenceBeat, 600); }
+async function presenceBeat(){
+  if(!user || !currentProject || view!=="project" || document.hidden) return;
+  const pid = currentProject;
+  await sb.from("presence").upsert({ user_id:user.id, project_id:pid, song_id:openSong?.id || null, seen_at:new Date().toISOString() }, { onConflict:"user_id,project_id" });
+  const since = new Date(Date.now() - 45e3).toISOString();
+  const { data } = await sb.from("presence").select("*").eq("project_id", pid).gte("seen_at", since);
+  if(pid !== currentProject) return;
+  presence = (data||[]).filter(r => r.user_id !== user.id);
+  drawPresence();
+}
+const dotsFor = sid => presence.filter(r => r.song_id===sid).map(r => `<span class="dot" title="${esc(nameOf(r.email))} has this song open">${esc(initials(r.email))}</span>`).join("");
+function drawPresence(){
+  document.querySelectorAll("[data-dots]").forEach(el => el.innerHTML = dotsFor(el.dataset.dots));
+  const v = $("#viewers");
+  if(v) v.innerHTML = presence.length ? presence.map(r => `<span class="dot" title="${esc(nameOf(r.email))}">${esc(initials(r.email))}</span>`).join("") + `<span style="margin-left:10px">${presence.length} online now</span>` : "";
 }
 
 /* ---------- modals ---------- */
 function modal(html){ $("#modalRoot").innerHTML = `<div class="overlay" data-act="close-bg"><div class="modal">${html}</div></div>`; }
-function closeModal(){ $("#modalRoot").innerHTML=""; openSong=null; }
+function closeModal(){ $("#modalRoot").innerHTML=""; openSong=null; pokePresence(); }
 
 function projectForm(p){
+  const opt = (v,l) => `<option value="${v}" ${p?.type===v?"selected":""}>${l}</option>`;
   modal(`<h2 style="margin-top:0">${p?"Edit":"New"} project</h2>
     <form id="projForm">
       <label>Title</label><input name="title" required value="${esc(p?.title||"")}">
       <label>Type</label>
-      <select name="type"><option value="single" ${p?.type==="single"?"selected":""}>Single</option><option value="album" ${p?.type==="album"?"selected":""}>Album</option></select>
+      <select name="type">${opt("single","Single")}${opt("ep","EP")}${opt("album","Album")}</select>
       <label>Artist</label><input name="artist" value="${esc(p?.artist||"")}">
       <label>Description</label><textarea name="description">${esc(p?.description||"")}</textarea>
       <div class="row" style="margin-top:16px">
@@ -458,14 +569,14 @@ function projectForm(p){
     const q = p ? sb.from("projects").update(v).eq("id",p.id).select().single() : sb.from("projects").insert(v).select().single();
     const { data, error } = await q;
     if(error) return toast(error.message);
-    currentProject = data.id; closeModal(); loadAll();
+    currentProject = data.id; view = "project"; closeModal(); loadAll();
   };
 }
 
 function s3Form(){
   const c = S3.saved(), fromFile = !!(window.S3_CONFIG && window.S3_CONFIG.accessKeyId);
   modal(`<h2 style="margin-top:0">Storage (S3)</h2>
-    <p class="muted" style="font-size:12px;line-height:1.6">Saved only in this browser, never in the repo. ${fromFile ? "Values in <b>s3.js</b> are in use and override these." : S3.configured() ? "Configured." : "Not configured yet."}</p>
+    <p class="muted" style="font-size:12px;line-height:1.6">Saved only in this browser, never in the repo. ${fromFile ? "Values in <b>s3.js</b> are in use and override these." : S3.configured() ? "Configured." : "Not configured: files go through the signing service instead."}</p>
     <form id="s3Form" autocomplete="off">
       <label>Access key ID</label><input name="accessKeyId" value="${esc(c.accessKeyId||"")}" spellcheck="false">
       <label>Secret access key</label><input name="secretAccessKey" type="password" value="${esc(c.secretAccessKey||"")}">
@@ -500,20 +611,45 @@ function songForm(){
   };
 }
 
+/* ---------- song detail ---------- */
 async function showSong(id, tab="progress"){
   openSong = { id, tab };
-  const [f, n, t] = await Promise.all([
-    sb.from("song_files").select("*").eq("song_id",id).order("created_at"),
+  const [f, n, t, c] = await Promise.all([
+    sb.from("song_files").select("*").eq("song_id",id).order("created_at",{ascending:false}),
     sb.from("song_notes").select("*").eq("song_id",id).order("created_at",{ascending:false}),
     sb.from("song_tasks").select("*").eq("song_id",id).order("created_at"),
+    sb.from("song_comments").select("*").eq("song_id",id).order("at_seconds"),
   ]);
   songExtra = { files: f.data||[], notes: n.data||[], tasks: t.data||[] };
+  songExtra.files.forEach(x => comments[x.id] = []);
+  (c.data||[]).forEach(x => (comments[x.file_id] = comments[x.file_id] || []).push(x));
+  pokePresence();
   drawSong();
 }
 
+function versionCard(f, isCur){
+  const cs = comments[f.id] || [];
+  return `<div class="file" data-file="${f.id}">
+    <div class="row vhead"><input class="grow" data-label="${f.id}" value="${esc(f.label||f.name)}" title="Rename this version (e.g. Demo v1, Mix 2)">
+      ${isCur ? `<span class="badge">current</span>` : ""}<span class="muted mono small">${fmtTime(f.duration)} · ${fmtSize(f.size)}</span></div>
+    <div class="row" style="margin-top:8px;flex-wrap:wrap">
+      <button class="primary btn-sm" data-act="play-file" data-id="${f.id}">${PLAY} Play</button>
+      ${isCur ? "" : `<button class="btn-sm" data-act="set-current" data-id="${f.id}">Set as current</button>`}
+      <button class="btn-sm" data-act="share-file" data-id="${f.id}">Share</button>
+      <span class="grow"></span><button class="ghost danger btn-sm" data-act="del-file" data-id="${f.id}">Delete</button></div>
+    <div class="wave" data-act="wave" data-id="${f.id}" data-wave="${f.id}" title="Click to play from here"><canvas></canvas><div class="ph" style="display:none"></div></div>
+    ${cs.map(c => `<div class="cmt ${c.resolved?"done":""}"><button class="ts" data-act="cmt-seek" data-file="${f.id}" data-t="${c.at_seconds}">${fmtTime(c.at_seconds)}</button>
+      <div class="tx"><span class="by">${esc(nameOf(c.author))} · ${esc(ago(c.created_at))}</span>${esc(c.body)}</div>
+      <button class="ghost btn-sm" data-act="cmt-resolve" data-id="${c.id}" data-on="${c.resolved?0:1}">${c.resolved?"Reopen":"Done"}</button>
+      <button class="ghost danger btn-sm" data-act="cmt-del" data-id="${c.id}">✕</button></div>`).join("")}
+    <form class="cform" data-file="${f.id}"><input class="ct" value="0:00" aria-label="Time"><input class="cb" placeholder="Comment at this time…" style="flex:1"><button class="btn-sm">Add</button></form>
+  </div>`;
+}
+
 async function drawSong(){
-  const s = songs.find(x=>x.id===openSong.id); if(!s) return closeModal();
+  const s = songs.find(x => x.id===openSong.id); if(!s) return closeModal();
   const tab = openSong.tab;
+  const cur = currentFile(s.id);
   let body = "";
   if(tab==="progress"){
     body = `<div class="grid2">
@@ -521,7 +657,9 @@ async function drawSong(){
         <div><label>BPM</label><input type="number" data-meta="bpm" value="${s.bpm??""}"></div>
         <div><label>Key</label><input data-meta="musical_key" value="${esc(s.musical_key||"")}" placeholder="e.g. F#m"></div>
       </div>
-      <label>Progress — ${progress(s)}%</label>
+      <label>Flows into the next track: overlap in seconds (0 = gapless)</label>
+      <input type="number" min="0" max="30" step="0.5" data-meta="segue_seconds" value="${Number(s.segue_seconds)||0}" style="max-width:160px">
+      <label style="margin-top:18px">Progress — ${progress(s)}%</label>
       <div class="bar" style="margin-bottom:12px"><i style="width:${progress(s)}%"></i></div>
       <div class="steps">${STEPS.map(([k,l])=>`<label class="step ${s.steps?.[k]?"done":""}"><input type="checkbox" data-step="${k}" ${s.steps?.[k]?"checked":""}>${l}</label>`).join("")}</div>
       <label style="margin-top:18px">To-do (${songExtra.tasks.filter(t=>t.done).length}/${songExtra.tasks.length})</label>
@@ -531,17 +669,9 @@ async function drawSong(){
     body = `<textarea id="lyrics" style="min-height:340px" placeholder="Write lyrics here…">${esc(s.lyrics)}</textarea>
       <div class="row" style="margin-top:10px"><span class="grow muted" id="lyricsInfo"></span><button data-act="export-song">Export .txt</button><button class="primary" data-act="save-lyrics">Save lyrics</button></div>`;
   } else if(tab==="audio"){
-    let urls = {};
-    if(songExtra.files.length){
-      try { const u = await S3.urls(songExtra.files.map(f => f.path), 3600); songExtra.files.forEach((f,i) => urls[f.path] = u[i]); }
-      catch(err){ toast(err.message); }
-    }
     body = `<input type="file" id="fileInput" accept="audio/*" multiple class="hidden">
-      <button class="primary" data-act="pick-file">Upload audio</button> <span class="muted" id="upInfo">Files over 3 MB are compressed to MP3 automatically.</span>
-      <div style="margin-top:14px">${songExtra.files.map(f=>`
-        <div class="file"><div class="row"><input class="grow" data-label="${f.id}" value="${esc(f.label||f.name)}" title="Rename (e.g. Demo v1, Mix 2)" style="font-weight:600;background:none;border-color:transparent"><span class="muted">${fmtSize(f.size)}</span>
-          <button class="ghost danger" data-act="del-file" data-id="${f.id}">Delete</button></div>
-          <audio controls preload="none" src="${esc(urls[f.path]||"")}"></audio></div>`).join("") || `<div class="empty">No audio yet.</div>`}</div>`;
+      <div class="row"><button class="primary" data-act="pick-file">Upload new version</button><span class="muted grow small" id="upInfo">Newest upload becomes the current version. Files over 3 MB are compressed to MP3.</span></div>
+      <div style="margin-top:14px">${songExtra.files.map(f => versionCard(f, cur && f.id===cur.id)).join("") || `<div class="empty">No audio yet.</div>`}</div>`;
   } else {
     body = `<textarea id="newNote" placeholder="Add a note…" style="min-height:70px"></textarea>
       <div style="margin:8px 0 14px"><button class="primary" data-act="add-note">Add note</button></div>
@@ -549,13 +679,16 @@ async function drawSong(){
   }
   modal(`<div class="row">
       <input id="songTitle" value="${esc(s.title)}" style="font-size:20px;font-weight:600;background:none;border-color:transparent">
+      <button class="btn-sm" data-act="play-song" data-id="${s.id}">${PLAY} Play</button><button class="btn-sm" data-act="share-song">Share</button>
       <button class="ghost" data-act="close">✕</button></div>
     <div class="tabs">${["progress","lyrics","audio","notes"].map(t=>`<button class="tab ${t===tab?"active":""}" data-act="tab" data-tab="${t}">${t[0].toUpperCase()+t.slice(1)}${t==="audio"&&songExtra.files.length?` (${songExtra.files.length})`:""}${t==="notes"&&songExtra.notes.length?` (${songExtra.notes.length})`:""}</button>`).join("")}</div>
     ${body}
     <div style="margin-top:20px;text-align:right"><button class="ghost danger" data-act="del-song">Delete song</button></div>`);
+
   $("#songTitle").onchange = async e => { await updateSong({title:e.target.value.trim()||s.title}); };
   document.querySelectorAll("[data-meta]").forEach(i => i.onchange = () => {
-    const k=i.dataset.meta; updateSong({[k]: i.value===""?null : (i.type==="number"?Number(i.value):i.value)});
+    const k = i.dataset.meta;
+    updateSong({ [k]: i.value==="" ? (k==="segue_seconds" ? 0 : null) : (i.type==="number" ? Number(i.value) : i.value) });
   });
   document.querySelectorAll("[data-step]").forEach(i => i.onchange = () => {
     updateSong({ steps: { ...(s.steps||{}), [i.dataset.step]: i.checked } });
@@ -563,7 +696,12 @@ async function drawSong(){
   const fi = $("#fileInput"); if(fi) fi.onchange = () => uploadFiles(fi.files);
   document.querySelectorAll("[data-label]").forEach(i => i.onchange = async () => {
     const { error } = await sb.from("song_files").update({ label: i.value.trim() || null }).eq("id", i.dataset.label);
-    if(error) toast(error.message); else { songExtra.files.find(f=>f.id===i.dataset.label).label = i.value.trim() || null; }
+    if(error) return toast(error.message);
+    const v = i.value.trim() || null;
+    songExtra.files.find(f=>f.id===i.dataset.label).label = v;
+    const g = files.find(f=>f.id===i.dataset.label); if(g) g.label = v;
+    player.queue.forEach(q => { if(q.fileId===i.dataset.label) q.label = v || q.label; });
+    render();
   });
   document.querySelectorAll("[data-task]").forEach(i => i.onchange = async () => {
     i.parentElement.classList.toggle("done", i.checked);
@@ -579,40 +717,82 @@ async function drawSong(){
   };
   const ly = $("#lyrics");
   if(ly){ const info = () => { const w = ly.value.trim().split(/\s+/).filter(Boolean).length; $("#lyricsInfo").textContent = `${w} words · ${ly.value ? ly.value.split("\n").length : 0} lines`; }; ly.oninput = info; info(); }
+
+  // comment forms: prefill the time from the player when it's on this version
+  document.querySelectorAll(".cform").forEach(form => {
+    const fid = form.dataset.file, ct = form.querySelector(".ct"), cb = form.querySelector(".cb");
+    cb.onfocus = () => { const st = player.state(); if(st.item?.fileId===fid) ct.value = fmtTime(st.time); };
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const text = cb.value.trim(); if(!text) return;
+      const { error } = await sb.from("song_comments").insert({ song_id: openSong.id, file_id: fid, at_seconds: parseTime(ct.value), body: text });
+      if(error) return toast(error.message);
+      lastMarks = ""; showSong(openSong.id, "audio");
+    };
+  });
+  if(tab==="audio"){ drawWaves(); updateWaves(player.state()); }
 }
+
+function drawWaves(){
+  document.querySelectorAll(".wave").forEach(w => {
+    const f = songExtra.files.find(x => x.id===w.dataset.wave); if(!f) return;
+    const cv = w.querySelector("canvas"), dpr = Math.min(devicePixelRatio||1, 2), W = w.clientWidth, H = w.clientHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.fillStyle = "#9a9a9a";
+    const pk = Array.isArray(f.peaks) ? f.peaks : null;
+    if(pk && pk.length){ const bw = W/pk.length; pk.forEach((v,i) => { const h = Math.max(1, v/255*(H-8)); g.fillRect(i*bw+.5, (H-h)/2, Math.max(1, bw-1), h); }); }
+    else g.fillRect(0, H/2, W, 1);
+    w.querySelectorAll(".cm").forEach(x => x.remove());
+    const dur = f.duration || 0;
+    if(dur) (comments[f.id]||[]).forEach(c => { const d = document.createElement("div"); d.className = "cm"; d.style.left = Math.min(100, c.at_seconds/dur*100) + "%"; d.title = c.body; w.appendChild(d); });
+  });
+}
+function updateWaves(st){
+  document.querySelectorAll(".wave").forEach(w => {
+    const ph = w.querySelector(".ph"), on = st.item && st.item.fileId===w.dataset.wave && st.duration;
+    ph.style.display = on ? "block" : "none"; if(on) ph.style.left = (st.time/st.duration*100) + "%";
+  });
+}
+addEventListener("resize", () => { if(openSong?.tab==="audio") drawWaves(); });
 
 async function updateSong(patch){
   const id = openSong.id;
   const { data, error } = await sb.from("songs").update(patch).eq("id",id).select().single();
   if(error) return toast(error.message);
   songs = songs.map(s => s.id===id ? data : s);
+  player.queue.forEach(q => { if(q.songId===id) q.overlap = Number(data.segue_seconds)||0; });
   sortSongs();
   render(); if(openSong?.id===id) drawSong();
 }
 
-/* Compress any audio file to an MP3 under MAX_BYTES (in the browser, before upload).
-   Picks the highest bitrate that fits the song's length; very long tracks drop to mono / lower sample rate. */
-async function compressAudio(file, onStatus){
-  if(file.size <= MAX_BYTES) return { blob: file, name: file.name, note: "" };
-  onStatus(`Decoding ${file.name}…`);
-  const AC = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AC();
-  let buf;
-  try { buf = await ctx.decodeAudioData(await file.arrayBuffer()); }
-  catch { throw new Error(`Couldn't read ${file.name} as audio`); }
+/* ---------- audio: analyse, compress, upload ---------- */
+async function decodeFile(file){
+  const AC = window.AudioContext || window.webkitAudioContext, ctx = new AC();
+  try { return await ctx.decodeAudioData(await file.arrayBuffer()); }
   finally { ctx.close && ctx.close(); }
-
-  const budget = MAX_BYTES * 0.94 * 8 / 1000 / buf.duration;           // max kbps that fits
+}
+function computePeaks(buf, n = 240){
+  const ch = buf.numberOfChannels, len = buf.length, step = Math.max(1, Math.floor(len/n)), skip = Math.max(1, (step/200)|0);
+  const data = Array.from({length:ch}, (_,c) => buf.getChannelData(c)), out = [];
+  for(let i=0;i<n;i++){
+    let m = 0; const s = i*step, e = Math.min(len, s+step);
+    for(let c=0;c<ch;c++){ const d = data[c]; for(let j=s;j<e;j+=skip){ const v = Math.abs(d[j]); if(v>m) m = v; } }
+    out.push(m);
+  }
+  const mx = Math.max(...out) || 1;
+  return out.map(v => Math.round(v/mx*255));
+}
+/* Encode to an MP3 under MAX_BYTES: highest bitrate that fits; very long tracks drop to mono / lower sample rate. */
+async function encodeMp3(buf, file, onStatus){
+  const budget = MAX_BYTES * 0.94 * 8 / 1000 / buf.duration;
   const hi = [128,112,96,80,64].find(r => r <= budget);
   const sr = hi ? 44100 : 22050;
   const kbps = hi || [48,40,32,24,16].find(r => r <= budget) || 16;
   const ch = kbps >= 112 ? 2 : 1;
-
   onStatus(`Resampling (${kbps} kbps, ${ch===2?"stereo":"mono"})…`);
   const off = new OfflineAudioContext(ch, Math.ceil(buf.duration * sr), sr);
   const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
   const r = await off.startRendering();
-
   const i16 = f => { const o = new Int16Array(f.length); for(let i=0;i<f.length;i++){ const s = Math.max(-1, Math.min(1, f[i])); o[i] = s<0 ? s*32768 : s*32767; } return o; };
   const L = i16(r.getChannelData(0)), R = ch===2 ? i16(r.getChannelData(1)) : null;
   const enc = new lamejs.Mp3Encoder(ch, sr, kbps);
@@ -627,47 +807,154 @@ async function compressAudio(file, onStatus){
   if(blob.size > MAX_BYTES) throw new Error(`${file.name} is too long to fit under 3 MB`);
   return { blob, name: file.name.replace(/\.[^.]+$/, "") + ".mp3", note: `${fmtSize(file.size)} → ${fmtSize(blob.size)} (${kbps} kbps)` };
 }
+async function prepareAudio(file, onStatus){
+  onStatus(`Reading ${file.name}…`);
+  let buf = null;
+  try { buf = await decodeFile(file); }
+  catch { if(file.size > MAX_BYTES) throw new Error(`Couldn't read ${file.name} as audio`); }
+  const peaks = buf ? computePeaks(buf) : null, duration = buf ? buf.duration : null;
+  if(file.size <= MAX_BYTES) return { blob:file, name:file.name, note:"", duration, peaks };
+  if(typeof lamejs === "undefined") throw new Error("MP3 encoder failed to load (check your connection / ad-blocker)");
+  return { ...(await encodeMp3(buf, file, onStatus)), duration, peaks };
+}
 
-async function uploadFiles(files){
-  const id = openSong.id; const info = $("#upInfo");
+async function uploadFiles(fileList){
+  const id = openSong.id, info = $("#upInfo");
   const projectId = songs.find(s => s.id===id).project_id;
   const errors = [];
   const fail = (name, msg, err) => { console.error("Upload failed:", name, err || msg); errors.push(`${name}: ${msg}`); };
-  for(const f of files){
+  for(const f of fileList){
     let c;
-    try {
-      if(f.size > MAX_BYTES && typeof lamejs === "undefined") throw new Error("MP3 encoder failed to load (check your connection / ad-blocker)");
-      c = await compressAudio(f, m => info.textContent = m);
-    } catch(err){ fail(f.name, err.message, err); continue; }
+    try { c = await prepareAudio(f, m => info.textContent = m); }
+    catch(err){ fail(f.name, err.message, err); continue; }
     info.textContent = `Uploading ${c.name}…`;
     const safe = c.name.replace(/[^\w.\-]+/g,"_");
     const path = `${projectId}/${id}/${Date.now()}-${safe}`;
     try { await S3.put(path, c.blob, c.blob.type || "audio/mpeg"); }
     catch(err){ fail(c.name, err.message, err); continue; }
-    const { error } = await sb.from("song_files").insert({ song_id:id, path, name:c.name, size:c.blob.size });
-    if(error){ S3.remove(path).catch(()=>{}); fail(c.name, "database: " + error.message, error); }
-    else if(c.note) toast("Compressed: " + c.note);
+    const { data, error } = await sb.from("song_files").insert({
+      song_id:id, path, name:c.name, size:c.blob.size, duration:c.duration, peaks:c.peaks,
+      label: c.name.replace(/\.[^.]+$/, ""),
+    }).select().single();
+    if(error){ S3.remove(path).catch(()=>{}); fail(c.name, "database: " + error.message, error); continue; }
+    await sb.rpc("set_current_file", { p_file: data.id });       // newest upload becomes the current version
+    if(c.note) toast("Compressed: " + c.note);
   }
-  await showSong(id,"audio");
+  await loadAll();
+  await showSong(id, "audio");
   if(errors.length){
     const el = $("#upInfo");
     if(el){ el.textContent = "Upload failed → " + errors.join(" | "); el.style.color = "var(--bad)"; }
   }
 }
 
+/* ---------- art ---------- */
+async function shrinkImage(file, maxDim = 1800){
+  const bmp = await createImageBitmap(file);
+  const sc = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width*sc), h = Math.round(bmp.height*sc);
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0,0,w,h); g.drawImage(bmp, 0, 0, w, h);
+  let q = .9, blob;
+  do { blob = await new Promise(r => c.toBlob(r, "image/jpeg", q)); q -= .1; } while(blob.size > MAX_BYTES && q > .3);
+  if(blob.size > MAX_BYTES) throw new Error("Image is too large even after compression");
+  return { blob, w, h, name: file.name.replace(/\.[^.]+$/, "") + ".jpg" };
+}
+async function loadArtTab(pid){
+  const { data, error } = await sb.from("project_art").select("*").eq("project_id", pid).order("created_at");
+  const box = $("#artBox");
+  if(!box || currentProject!==pid || projTab!=="art") return;
+  if(error){ box.textContent = error.message; return; }
+  let urls = [];
+  try { urls = await signMany(data.map(r => r.path)); } catch(e){ toast(e.message); }
+  if(!$("#artBox") || currentProject!==pid || projTab!=="art") return;
+  box.className = "";
+  box.innerHTML = `<div class="row" style="margin-bottom:12px"><input type="file" id="artInput" accept="image/*" multiple class="hidden">
+      <button class="primary" data-act="pick-art">+ Add artwork</button><span id="artInfo" class="muted small grow">Covers, alt art, mood-board images. Resized and compressed under 3 MB.</span></div>
+    ${data.length ? `<div class="artgrid">${data.map((r,i) => `
+      <div class="art"><div class="img" data-act="view-art" data-url="${esc(urls[i]||"")}" style="background-image:url('${esc(urls[i]||"")}')">${r.is_cover?`<span class="badge" style="position:absolute;top:6px;left:6px;background:var(--void)">cover</span>`:""}</div>
+        <input data-artlabel="${r.id}" value="${esc(r.label||"")}" placeholder="Label (e.g. Alt cover, Back)">
+        <div class="row" style="margin-top:8px">${r.is_cover?"":`<button class="btn-sm" data-act="art-cover" data-id="${r.id}">Set cover</button>`}<span class="grow"></span><button class="ghost danger btn-sm" data-act="art-del" data-id="${r.id}">Delete</button></div></div>`).join("")}</div>`
+      : `<div class="empty">No artwork yet. Add a cover to see it here, in the player and on shared pages.</div>`}`;
+  const ai = $("#artInput"); if(ai) ai.onchange = () => uploadArt(ai.files, pid, data.length);
+  document.querySelectorAll("[data-artlabel]").forEach(i => i.onchange = async () => {
+    const { error } = await sb.from("project_art").update({ label: i.value.trim() || null }).eq("id", i.dataset.artlabel);
+    if(error) toast(error.message);
+  });
+}
+async function uploadArt(fileList, pid, existing){
+  const info = $("#artInfo"); let n = existing;
+  for(const f of fileList){
+    try {
+      info.textContent = `Preparing ${f.name}…`;
+      const im = await shrinkImage(f);
+      const path = `${pid}/art/${Date.now()}-${im.name.replace(/[^\w.\-]+/g,"_")}`;
+      info.textContent = `Uploading ${im.name}…`;
+      await S3.put(path, im.blob, "image/jpeg");
+      const { error } = await sb.from("project_art").insert({ project_id:pid, path, label:null, width:im.w, height:im.h, is_cover: n===0 });
+      if(error){ S3.remove(path).catch(()=>{}); throw new Error(error.message); }
+      n++;
+    } catch(err){ console.error(err); toast(`${f.name}: ${err.message}`); }
+  }
+  await loadCovers(); loadArtTab(pid);
+}
+async function removeProjectArt(pid){
+  const { data } = await sb.from("project_art").select("path").eq("project_id", pid);
+  if(data?.length) await Promise.allSettled(data.map(d => S3.remove(d.path)));
+}
+
+/* ---------- sharing outside the group ---------- */
+async function shareModal(preset = {}){
+  const pid = currentProject;
+  const { data: rows, error } = await sb.from("shares").select("*").eq("project_id", pid).order("created_at", {ascending:false});
+  if(error) return toast(error.message + (/relation/.test(error.message) ? " (have you run schema-v2.sql?)" : ""));
+  const scopeOf = s => s.file_id ? "One version of “" + (songs.find(x=>x.id===s.song_id)?.title||"song") + "”" : s.song_id ? "Song: " + (songs.find(x=>x.id===s.song_id)?.title||"") : "Whole project";
+  const state = s => s.revoked ? "revoked" : (s.expires_at && new Date(s.expires_at) < new Date()) ? "expired" : s.expires_at ? "expires " + new Date(s.expires_at).toLocaleDateString() : "no expiry";
+  const song = preset.songId && songs.find(x => x.id===preset.songId);
+  modal(`<div class="row"><h2 class="grow" style="margin:0">Share</h2><button class="ghost" data-act="close">✕</button></div>
+    <p class="muted" style="font-size:12px;line-height:1.6">Anyone with a link can stream the shared tracks (and artwork) <b>without an account</b>. Comments, lyrics, notes and the rest of the project stay private. Revoke a link any time.</p>
+    <form id="shareForm">
+      <label>What to share</label>
+      <select name="scope">
+        <option value="project" ${!preset.songId?"selected":""}>Whole project (current version of every track)</option>
+        ${song ? `<option value="song" ${preset.songId&&!preset.fileId?"selected":""}>“${esc(song.title)}” (current version)</option>` : ""}
+        ${preset.fileId ? `<option value="file" selected>Just this version</option>` : ""}
+      </select>
+      <div class="grid2" style="grid-template-columns:1fr 1fr">
+        <div><label>Expires</label><select name="exp"><option value="">Never</option><option value="7">In 7 days</option><option value="30">In 30 days</option><option value="90">In 90 days</option></select></div>
+        <div><label>Note (only you see this)</label><input name="label" placeholder="e.g. Label A&amp;R"></div>
+      </div>
+      <button class="primary" style="margin-top:14px">Create link</button>
+    </form>
+    <div class="section-label" style="margin-top:22px">Links</div>
+    ${(rows||[]).map(s => `<div class="sharerow"><div class="row"><b class="grow" style="font-weight:600">${esc(s.label || scopeOf(s))}</b><span class="muted mono small">${esc(scopeOf(s))} · ${esc(state(s))}</span></div>
+        <div class="row" style="margin-top:8px"><input readonly value="${esc(shareUrl(s.token))}" onclick="this.select()" class="grow">
+        <button class="btn-sm" data-act="copy-link" data-link="${esc(shareUrl(s.token))}">Copy</button>
+        <button class="ghost danger btn-sm" data-act="share-del" data-id="${s.id}">Revoke</button></div></div>`).join("") || `<div class="empty">No links yet.</div>`}`);
+  $("#shareForm").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target), scope = fd.get("scope"), token = newToken();
+    const row = { token, project_id: pid, song_id: scope!=="project" ? preset.songId : null, file_id: scope==="file" ? preset.fileId : null,
+                  label: fd.get("label").trim() || null, expires_at: fd.get("exp") ? new Date(Date.now() + fd.get("exp")*864e5).toISOString() : null };
+    const { error } = await sb.from("shares").insert(row);
+    if(error) return toast(error.message);
+    try { await navigator.clipboard.writeText(shareUrl(token)); toast("Link created and copied"); } catch { toast("Link created"); }
+    shareModal(preset);
+  };
+}
+
 /* ---------- realtime (bandmates' changes show up live) ---------- */
 function subscribe(){
   if(chan) return;
   chan = sb.channel("db-changes").on("postgres_changes", { event:"*", schema:"public" }, () => {
-    clearTimeout(rtTimer); rtTimer = setTimeout(refresh, 500);
+    clearTimeout(rtTimer); rtTimer = setTimeout(refresh, 600);
   }).subscribe();
 }
 async function refresh(){
   await loadAll();
   if(!openSong || openSong.tab==="lyrics") return;                       // never clobber lyrics being typed
   const typing = document.activeElement && document.activeElement.closest(".modal") && /INPUT|TEXTAREA/.test(document.activeElement.tagName);
-  const playing = [...document.querySelectorAll("audio")].some(a => !a.paused);
-  if(!typing && !playing) showSong(openSong.id, openSong.tab);
+  if(!typing) showSong(openSong.id, openSong.tab);
 }
 
 /* ---------- search ---------- */
@@ -728,7 +1015,7 @@ async function showMembers(){
     sb.from("project_invites").select("*").eq("project_id",pid).order("created_at"),
   ]);
   const members = m.data||[], invites = i.data||[];
-  const owner = members.find(x=>x.user_id===user.id)?.role === "owner";
+  const me = members.find(x=>x.user_id===user.id), owner = me?.role === "owner";
   modal(`<div class="row"><h2 class="grow" style="margin:0">Members · ${esc(proj.title)}</h2><button class="ghost" data-act="close">✕</button></div>
     <p class="muted">Everyone listed can edit every song, lyric, note, to-do and audio file in this project. Each person uses their own login.</p>
     ${members.map(x=>`<div class="file row"><span class="grow">${esc(x.email||x.user_id)} <span class="badge">${x.role}</span></span>
@@ -738,7 +1025,10 @@ async function showMembers(){
     ${invites.map(x=>`<div class="file row"><span class="grow">${esc(x.email)}</span><button class="ghost danger" data-act="revoke-invite" data-id="${x.id}">Revoke</button></div>`).join("")}
     <label>Invite a bandmate by email</label>
     <form id="inviteForm" class="row"><input type="email" name="email" placeholder="bandmate@example.com" required class="grow"><button class="primary">Invite</button></form>
-    <p class="muted" style="font-size:13px">No email is sent. Send them this site's link; they sign up with <em>that exact email</em>, confirm it, and the project appears for them.</p>`);
+    <p class="muted" style="font-size:13px">No email is sent. Send them this site's link; they sign up with <em>that exact email</em>, confirm it, and the project appears for them.</p>
+    <label style="margin-top:20px">Your email digest</label>
+    <div class="row"><span class="grow muted small">A Monday email with what your bandmates did and which tracks got listened to.</span>
+      <button data-act="digest-toggle" data-on="${me?.digest===false?1:0}">${me?.digest===false ? "Turn on" : "Turn off"}</button></div>`);
   $("#inviteForm").onsubmit = async e => {
     e.preventDefault();
     const email = new FormData(e.target).get("email").trim().toLowerCase();
@@ -748,8 +1038,6 @@ async function showMembers(){
     showMembers();
   };
 }
-
-/* ---------- click delegation ---------- */
 
 async function removeSongFiles(songIds){
   if(!songIds.length) return;
@@ -765,22 +1053,34 @@ document.addEventListener("click", async e => {
   if(act==="del-note") e.preventDefault();
   switch(act){
     case "signout": await sb.auth.signOut(); break;
-    case "select-project": currentProject=id; render(); break;
+    case "go-home": view = "home"; currentProject = null; presence = []; render(); break;
+    case "select-project": currentProject = id; view = "project"; projTab = "tracks"; presence = []; render(); break;
+    case "proj-tab": projTab = el.dataset.tab; render(); break;
+    case "open-feed": {
+      const pid = el.dataset.project, sid = el.dataset.song;
+      if(projects.find(p => p.id===pid)){ currentProject = pid; view = "project"; projTab = "tracks"; presence = []; render(); }
+      if(sid && songs.find(s => s.id===sid)) showSong(sid);
+      break; }
     case "new-project": projectForm(null); break;
     case "edit-project": projectForm(projects.find(p=>p.id===currentProject)); break;
     case "del-project": {
-      if(!confirm("Delete this project, all its songs, lyrics, notes and audio?")) return;
+      if(!confirm("Delete this project, all its songs, lyrics, notes, art and audio?")) return;
       await removeSongFiles(songs.filter(s=>s.project_id===currentProject).map(s=>s.id));
+      await removeProjectArt(currentProject);
       const { error } = await sb.from("projects").delete().eq("id",currentProject);
       if(error) return toast(error.message);
-      currentProject=null; closeModal(); loadAll(); break; }
+      currentProject = null; view = "home"; closeModal(); loadAll(); break; }
     case "show-members": showMembers(); break;
+    case "digest-toggle": {
+      const { error } = await sb.rpc("set_my_digest", { p_project: currentProject, p_on: el.dataset.on==="1" });
+      if(error) toast(error.message); else showMembers();
+      break; }
     case "remove-member": {
       const self = id === user.id;
       if(!confirm(self ? "Leave this project?" : "Remove this person from the project?")) return;
       const { error } = await sb.from("project_members").delete().eq("project_id",currentProject).eq("user_id",id);
       if(error) return toast(error.message);
-      if(self){ closeModal(); currentProject=null; loadAll(); } else showMembers();
+      if(self){ closeModal(); currentProject = null; view = "home"; loadAll(); } else showMembers();
       break; }
     case "revoke-invite":
       await sb.from("project_invites").delete().eq("id",id); showMembers(); break;
@@ -802,11 +1102,15 @@ document.addEventListener("click", async e => {
     case "save-lyrics": await updateSong({ lyrics: $("#lyrics").value }); toast("Lyrics saved"); break;
     case "pick-file": $("#fileInput").click(); break;
     case "del-file": {
-      if(!confirm("Delete this audio file?")) return;
+      if(!confirm("Delete this audio version (and its comments)?")) return;
       const f = songExtra.files.find(x=>x.id===id);
       try { await S3.remove(f.path); } catch(err){ toast(err.message); }
       await sb.from("song_files").delete().eq("id",id);
-      showSong(openSong.id,"audio"); break; }
+      await loadAll(); showSong(openSong.id,"audio"); break; }
+    case "set-current": {
+      const { error } = await sb.rpc("set_current_file", { p_file: id });
+      if(error) return toast(error.message);
+      await loadAll(); showSong(openSong.id,"audio"); toast("Set as current version"); break; }
     case "add-note": {
       const body = $("#newNote").value.trim(); if(!body) return;
       const { error } = await sb.from("song_notes").insert({ song_id:openSong.id, body });
@@ -820,34 +1124,70 @@ document.addEventListener("click", async e => {
       const { error } = await sb.from("songs").delete().eq("id",openSong.id);
       if(error) return toast(error.message);
       closeModal(); loadAll(); break; }
+
+    /* playback */
+    case "play-song": playSong(id); break;
+    case "play-all": {
+      const first = songs.filter(s => s.project_id===currentProject).find(s => currentFile(s.id));
+      if(first) playSong(first.id); else toast("No audio uploaded in this project yet");
+      break; }
+    case "play-file": playFile(id); break;
+    case "pl-toggle": player.toggle(); break;
+    case "pl-next": player.next(); break;
+    case "pl-prev": player.prev(); break;
+    case "pl-auto": player.setAutoplay(!player.autoplay); lsSet("sb_autoplay", player.autoplay ? "1" : "0"); break;
+    case "pl-comment": commentModal(); break;
+    case "wave": {
+      const r = el.getBoundingClientRect(), ratio = Math.min(1, Math.max(0, (e.clientX - r.left)/r.width));
+      const f = songExtra.files.find(x => x.id===id), st = player.state();
+      if(st.item?.fileId===id) player.seek(ratio * (st.duration || f.duration || 0));
+      else playFile(id, ratio * (f.duration || 0));
+      break; }
+
+    /* comments */
+    case "cmt-seek": {
+      const fid = el.dataset.file, t = Number(el.dataset.t), st = player.state();
+      if(st.item?.fileId===fid){ player.seek(t); if(!st.playing) player.toggle(); } else playFile(fid, t);
+      break; }
+    case "cmt-resolve": {
+      const { error } = await sb.from("song_comments").update({ resolved: el.dataset.on==="1" }).eq("id", id);
+      if(error) return toast(error.message);
+      showSong(openSong.id,"audio"); break; }
+    case "cmt-del":
+      await sb.from("song_comments").delete().eq("id",id); lastMarks = ""; showSong(openSong.id,"audio"); break;
+
+    /* art */
+    case "pick-art": $("#artInput").click(); break;
+    case "view-art": modal(`<div class="row"><span class="grow"></span><button class="ghost" data-act="close">✕</button></div><div class="lightbox"><img src="${esc(el.dataset.url)}" alt=""></div>`); break;
+    case "art-cover": {
+      const { error } = await sb.rpc("set_cover", { p_art: id });
+      if(error) return toast(error.message);
+      await loadCovers(); loadArtTab(currentProject); break; }
+    case "art-del": {
+      if(!confirm("Delete this artwork?")) return;
+      const { data } = await sb.from("project_art").select("path").eq("id",id).single();
+      if(data) try { await S3.remove(data.path); } catch(err){ toast(err.message); }
+      await sb.from("project_art").delete().eq("id",id);
+      await loadCovers(); loadArtTab(currentProject); break; }
+
+    /* sharing */
+    case "share-project": shareModal({}); break;
+    case "share-song": shareModal({ songId: openSong.id }); break;
+    case "share-file": { const f = songExtra.files.find(x => x.id===id); shareModal({ songId: f.song_id, fileId: id }); break; }
+    case "share-del": {
+      if(!confirm("Revoke this link? Anyone using it will lose access.")) return;
+      await sb.from("shares").delete().eq("id",id); shareModal({}); break; }
+    case "copy-link":
+      try { await navigator.clipboard.writeText(el.dataset.link); toast("Link copied"); } catch { toast("Select the link and copy it"); }
+      break;
   }
 });
-document.addEventListener("keydown", e => { if(e.key==="Escape" && openSong) closeModal(); });
+document.addEventListener("keydown", e => {
+  if(e.key==="Escape" && $("#modalRoot").innerHTML) closeModal();
+  const tag = document.activeElement?.tagName || "";
+  if(e.code==="Space" && !/INPUT|TEXTAREA|SELECT|BUTTON/.test(tag) && player.state().item){ e.preventDefault(); player.toggle(); }
+});
 </script>
-<script>
-/* ambient dot field (static under reduced-motion) */
-(function(){
-  const c=document.getElementById("dotfield"), g=c.getContext("2d"), GAP=28;
-  const still=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W,H,mx=-999,my=-999,raf=0;
-  function draw(){
-    raf=0; g.clearRect(0,0,W,H);
-    for(let y=GAP/2;y<H;y+=GAP) for(let x=GAP/2;x<W;x+=GAP){
-      const t=Math.max(0,1-Math.hypot(x-mx,y-my)/170);
-      g.fillStyle="rgba(255,255,255,"+(.11+t*.75).toFixed(3)+")";
-      g.beginPath(); g.arc(x,y,1+t*1.5,0,6.2832); g.fill();
-    }
-  }
-  function size(){
-    const d=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
-    c.width=W*d; c.height=H*d; c.style.width=W+"px"; c.style.height=H+"px"; g.setTransform(d,0,0,d,0,0); draw();
-  }
-  addEventListener("resize",size); size();
-  if(!still){
-    addEventListener("pointermove",e=>{ mx=e.clientX; my=e.clientY; if(!raf) raf=requestAnimationFrame(draw); });
-    document.addEventListener("pointerleave",()=>{ mx=my=-999; if(!raf) raf=requestAnimationFrame(draw); });
-  }
-})();
-</script>
+<script src="fx.js"></script>
 </body>
 </html>

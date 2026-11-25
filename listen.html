@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Listen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="dotfield" aria-hidden="true"></canvas>
+<div class="noise"></div>
+<div class="scanline-overlay"></div>
+
+<div class="lwrap" id="page">
+  <div class="empty" id="state">Loading…</div>
+</div>
+
+<div id="pbar" class="pbar hidden">
+  <div class="pb-info"><div class="pb-art" id="pbArt"></div><div style="min-width:0"><div class="pb-title" id="pbTitle"></div><div class="pb-sub" id="pbSub"></div></div></div>
+  <div class="pb-ctl">
+    <button data-act="pl-prev" title="Previous">|&#9664;&#65038;</button>
+    <button class="primary" id="pbPlay" data-act="pl-toggle" title="Play / pause (Space)">&#9654;&#65038;</button>
+    <button data-act="pl-next" title="Next">&#9654;&#65038;|</button>
+  </div>
+  <div class="pb-seek"><span id="pbCur">0:00</span><div class="seek"><input type="range" id="pbRange" min="0" max="1000" value="0" aria-label="Seek"></div><span id="pbDur">0:00</span></div>
+  <div class="pb-opt"><button class="ghost" id="pbAuto" data-act="pl-auto">Autoplay: on</button></div>
+</div>
+<div id="modalRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="player.js"></script>
+<script>
+// Same two values as in index.html (the publishable key is safe to expose).
+const SUPABASE_URL = "https://hsdwhxklsjanzulyzufj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_BHEI6t16hd7ff3Xl8Q5yQA_weW8_EWI";
+const PLAY = "▶︎", PAUSE = "❚❚";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtTime = s => (s == null || !isFinite(s)) ? "" : Math.floor(s/60) + ":" + String(Math.floor(s) % 60).padStart(2, "0");
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const token = new URLSearchParams(location.search).get("t") || "";
+let share = null, urlMap = {}, urlAt = 0;
+
+async function loadUrls(){
+  const ids = [...share.tracks.map(t => t.file_id), ...(share.art||[]).map(a => a.id), ...(share.cover_id ? [share.cover_id] : [])];
+  const { data, error } = await sb.functions.invoke("s3-sign", { body: { action:"get", token, ids } });
+  if(error){
+    let msg = error.message; try { const j = await error.context.json(); if(j.error) msg = j.error; } catch {}
+    throw new Error(msg);
+  }
+  urlMap = data.urls || {}; urlAt = Date.now();
+}
+
+const player = new Player({
+  getUrl: async it => { if(Date.now() - urlAt > 45*60e3) await loadUrls(); return urlMap[it.fileId]; },
+  onState: st => onState(st),
+  onCount: it => { sb.rpc("record_share_play", { p_token: token, p_file: it.fileId }); },
+  onError: e => { $("#pbSub").textContent = e.message; },
+});
+
+function fail(msg){ $("#page").innerHTML = `<div class="empty">${esc(msg)}</div>`; }
+
+(async function init(){
+  if(!token) return fail("This link is missing its code.");
+  const { data, error } = await sb.rpc("get_share", { p_token: token });
+  if(error) return fail("Couldn't load this page. " + error.message);
+  if(!data) return fail("This link is invalid, expired or has been revoked.");
+  share = data;
+  document.title = share.title + (share.artist ? " · " + share.artist : "");
+  try { await loadUrls(); } catch(e){ return fail("Couldn't load the audio: " + e.message); }
+  draw();
+})();
+
+function draw(){
+  const cu = share.cover_id && urlMap[share.cover_id];
+  const label = share.scope==="song" ? "shared track" : share.type;
+  $("#page").innerHTML = `
+    <div class="hero">
+      <div class="cv" style="${cu?`background-image:url('${esc(cu)}')`:"display:none"}"></div>
+      <div><div class="eyebrow"><span class="dot-pulse"></span>${esc(label)}</div>
+        <h1>${esc(share.title)}</h1>
+        <div class="muted">${esc(share.artist||"")}</div>
+        ${share.description ? `<p style="margin-top:10px;max-width:60ch;line-height:1.7">${esc(share.description)}</p>` : ""}
+        ${share.tracks.length ? `<div style="margin-top:16px"><button class="primary" data-act="play-all">${PLAY} Play${share.tracks.length>1?" all":""}</button></div>` : ""}
+      </div>
+    </div>
+    ${share.tracks.length ? `<div class="section-label">Tracks</div>
+      <div>${share.tracks.map((t,i) => `<div class="track" data-act="play" data-i="${i}">
+        <button class="pbtn" data-act="play" data-i="${i}">${PLAY}</button>
+        <div><span class="eq"><i></i><i></i><i></i></span><span class="mono muted small" style="margin-right:8px">${String(t.track ?? i+1).padStart(2,"0")}</span><strong style="font-weight:600">${esc(t.title)}</strong>
+          ${t.label && share.scope==="song" ? `<span class="vtag">${esc(t.label)}</span>` : ""}</div>
+        <span class="mono muted small">${esc(fmtTime(t.duration))}</span></div>`).join("")}</div>`
+      : `<div class="empty">Nothing to play yet.</div>`}
+    ${(share.art||[]).length ? `<div class="section-label">Artwork</div>
+      <div class="artgrid">${share.art.map(a => `<div class="art"><div class="img" data-act="view-art" data-url="${esc(urlMap[a.id]||"")}" style="background-image:url('${esc(urlMap[a.id]||"")}')"></div>${a.label?`<div class="muted small" style="margin-top:8px">${esc(a.label)}</div>`:""}</div>`).join("")}</div>` : ""}
+    <div class="lfoot">Shared privately · Songbook</div>`;
+  mark(player.state());
+}
+
+const items = () => share.tracks.map(t => ({ key:t.file_id, fileId:t.file_id, songId:t.song_id, title:t.title, label:t.label,
+  artist:share.artist, duration:t.duration, overlap:Number(t.segue)||0 }));
+
+let seeking = false;
+function onState(st){
+  const it = st.item;
+  $("#pbar").classList.toggle("hidden", !it);
+  document.body.classList.toggle("has-player", !!it);
+  if(it){
+    $("#pbTitle").textContent = it.title; $("#pbSub").textContent = share.title;
+    $("#pbPlay").textContent = st.playing ? PAUSE : PLAY;
+    $("#pbCur").textContent = fmtTime(st.time) || "0:00"; $("#pbDur").textContent = fmtTime(st.duration) || "0:00";
+    if(!seeking && st.duration) $("#pbRange").value = Math.round(st.time/st.duration*1000);
+    const cu = share.cover_id && urlMap[share.cover_id]; $("#pbArt").style.backgroundImage = cu ? `url("${cu}")` : "";
+  }
+  $("#pbAuto").textContent = "Autoplay: " + (st.autoplay ? "on" : "off");
+  mark(st);
+}
+function mark(st){
+  if(!share) return;
+  const sid = st.item?.songId;
+  document.querySelectorAll(".track").forEach(r => {
+    const on = share.tracks[+r.dataset.i]?.song_id === sid;
+    r.classList.toggle("now", on); r.classList.toggle("playing", on && st.playing);
+    const b = r.querySelector(".pbtn"); if(b) b.textContent = on && st.playing ? PAUSE : PLAY;
+  });
+}
+
+const rng = $("#pbRange");
+rng.addEventListener("pointerdown", () => seeking = true);
+addEventListener("pointerup", () => seeking = false);
+rng.addEventListener("input", () => { const d = player.state().duration; if(d) player.seek(rng.value/1000*d); });
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if(!el || !share) return;
+  switch(el.dataset.act){
+    case "play": {
+      const i = +el.dataset.i, st = player.state();
+      if(st.item && st.item.songId===share.tracks[i].song_id) player.toggle(); else player.setQueue(items(), i);
+      break; }
+    case "play-all": player.setQueue(items(), 0); break;
+    case "pl-toggle": player.toggle(); break;
+    case "pl-next": player.next(); break;
+    case "pl-prev": player.prev(); break;
+    case "pl-auto": player.setAutoplay(!player.autoplay); break;
+    case "view-art": $("#modalRoot").innerHTML = `<div class="overlay" data-act="close"><div class="modal"><div class="lightbox"><img src="${esc(el.dataset.url)}" alt=""></div></div></div>`; break;
+    case "close": $("#modalRoot").innerHTML = ""; break;
+  }
+});
+document.addEventListener("keydown", e => {
+  if(e.key==="Escape") $("#modalRoot").innerHTML = "";
+  if(e.code==="Space" && !/INPUT|BUTTON/.test(document.activeElement?.tagName||"") && player.state().item){ e.preventDefault(); player.toggle(); }
+});
+</script>
+<script src="fx.js"></script>
+</body>
+</html>
