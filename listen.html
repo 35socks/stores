@@ -43,7 +43,10 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtTime = s => (s == null || !isFinite(s)) ? "" : Math.floor(s/60) + ":" + String(Math.floor(s) % 60).padStart(2, "0");
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Always anonymous: this page never uses (or needs) a login, even if you're signed in to the app in this browser.
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+});
 const token = new URLSearchParams(location.search).get("t") || "";
 let share = null, urlMap = {}, urlAt = 0;
 
@@ -52,6 +55,7 @@ async function loadUrls(){
   const { data, error } = await sb.functions.invoke("s3-sign", { body: { action:"get", token, ids } });
   if(error){
     let msg = error.message; try { const j = await error.context.json(); if(j.error) msg = j.error; } catch {}
+    if(/Not signed in|Bad keys|Bad action|Invalid JWT/i.test(msg)) msg += " (the s3-sign function needs the latest version deployed, with Verify JWT turned off)";
     throw new Error(msg);
   }
   urlMap = data.urls || {}; urlAt = Date.now();

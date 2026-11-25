@@ -52,7 +52,7 @@
 <!-- App -->
 <div id="app" class="hidden">
   <aside>
-    <div class="row"><h2 class="grow wordmark">SONG<span>BOOK</span></h2><button class="ghost" data-act="s3-settings" title="Storage (S3) keys">Storage</button><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
+    <div class="row"><h2 class="grow wordmark">SONG<span>BOOK</span></h2><button class="ghost" data-act="fx-toggle" title="Turn background effects on/off (helps on slower machines)">FX</button><button class="ghost" data-act="s3-settings" title="Storage (S3) keys">Storage</button><button class="ghost" data-act="signout" title="Sign out">Sign out</button></div>
     <button class="proj" id="homeBtn" data-act="go-home">Home · Activity</button>
     <button class="primary" data-act="new-project">+ New project</button>
     <input id="search" placeholder="Search songs &amp; lyrics…">
@@ -459,24 +459,28 @@ function playFile(fid, startAt = 0){
   player.setQueue([itemFor(s, f)], 0, startAt);
 }
 
-let seeking = false, lastFile = null, lastMarks = "";
+let seeking = false, lastFile = null, lastMarks = "", lastNow = "";
+const setText = (el, v) => { if(el.textContent !== v) el.textContent = v; };      // avoid pointless DOM writes (this runs ~4x/second)
 function onPlayerState(st){
   const it = st.item;
   $("#pbar").classList.toggle("hidden", !it);
   document.body.classList.toggle("has-player", !!it);
   if(it){
     const proj = projects.find(p => p.id===it.projectId);
-    $("#pbTitle").textContent = it.title;
-    $("#pbSub").textContent = [proj?.title, it.label].filter(Boolean).join(" · ");
-    $("#pbPlay").textContent = st.playing ? PAUSE : PLAY;
-    $("#pbCur").textContent = fmtTime(st.time); $("#pbDur").textContent = fmtTime(st.duration);
+    setText($("#pbTitle"), it.title);
+    setText($("#pbSub"), [proj?.title, it.label].filter(Boolean).join(" · "));
+    setText($("#pbPlay"), st.playing ? PAUSE : PLAY);
+    setText($("#pbCur"), fmtTime(st.time)); setText($("#pbDur"), fmtTime(st.duration));
     if(!seeking && st.duration) $("#pbRange").value = Math.round(st.time/st.duration*1000);
-    const cu = coverUrl(it.projectId); $("#pbArt").style.backgroundImage = cu ? `url("${cu}")` : "";
+    const bg = coverUrl(it.projectId) ? `url("${coverUrl(it.projectId)}")` : "", art = $("#pbArt");
+    if(art.dataset.bg !== bg){ art.dataset.bg = bg; art.style.backgroundImage = bg; }
     if(lastFile !== it.fileId){ lastFile = it.fileId; loadComments(it.fileId).then(() => drawMarks()); }
     drawMarks(st);
   }
-  $("#pbAuto").textContent = "Autoplay: " + (st.autoplay ? "on" : "off");
-  markNow(st); updateWaves(st);
+  setText($("#pbAuto"), "Autoplay: " + (st.autoplay ? "on" : "off"));
+  const key = (it?.songId || "") + "|" + st.playing;
+  if(key !== lastNow){ lastNow = key; markNow(st); }                              // row highlight only changes on track/play-state change
+  if(openSong?.tab === "audio") updateWaves(st);
 }
 function markNow(st){
   const sid = st.item?.songId;
@@ -1093,6 +1097,7 @@ document.addEventListener("click", async e => {
       download(s.title, `${s.title}\n\n${$("#lyrics").value}`); break; }
     case "del-task":
       await sb.from("song_tasks").delete().eq("id",id); showSong(openSong.id,"progress"); break;
+    case "fx-toggle": { const off = document.body.classList.toggle("nofx"); lsSet("sb_fx", off ? "0" : "1"); toast("Effects " + (off ? "off" : "on")); break; }
     case "s3-settings": s3Form(); break;
     case "s3-clear": S3.clear(); toast("Storage keys cleared"); closeModal(); break;
     case "new-song": songForm(); break;

@@ -99,7 +99,7 @@
 
   /* ---------- app layout ---------- */
   #app{position:relative;z-index:5;display:grid;grid-template-columns:270px 1fr;min-height:100vh}
-  aside{background:rgba(0,0,0,.72);backdrop-filter:blur(6px);border-right:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;height:100vh;overflow:auto}
+  aside{background:rgba(0,0,0,.94);border-right:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;height:100vh;overflow:auto}
   .proj{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-left:2px solid transparent;background:none;text-transform:none;letter-spacing:.03em;font-size:13px}
   .proj:hover{background:var(--panel2)}
   .proj.active{background:var(--panel3);border-left-color:var(--paper)}
@@ -237,7 +237,7 @@
 .sharerow input{font-family:var(--mono);font-size:11px}
 
 /* player bar */
-.pbar{position:fixed;left:0;right:0;bottom:0;z-index:25;display:grid;grid-template-columns:minmax(150px,270px) auto 1fr auto;gap:20px;align-items:center;padding:10px 18px;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);border-top:1px solid var(--line2)}
+.pbar{position:fixed;left:0;right:0;bottom:0;z-index:25;display:grid;grid-template-columns:minmax(150px,270px) auto 1fr auto;gap:20px;align-items:center;padding:10px 18px;background:rgba(0,0,0,.96);border-top:1px solid var(--line2)}
 .pb-info{display:flex;gap:12px;align-items:center;min-width:0}
 .pb-art{width:44px;height:44px;flex:none;background:var(--panel3) center/cover no-repeat;border:1px solid var(--line)}
 .pb-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -279,3 +279,6 @@ body.has-player aside{height:calc(100vh - 78px)}
 .track:not(.now) .eq{display:none}
 .lfoot{margin-top:40px;text-align:center;font:9.5px var(--mono);letter-spacing:.2em;color:var(--dim-2);text-transform:uppercase}
 @media (max-width:640px){.hero{grid-template-columns:1fr}.hero .cv{max-width:260px}}
+
+/* effects off switch */
+body.nofx #dotfield,body.nofx .noise,body.nofx .scanline-overlay{display:none}
